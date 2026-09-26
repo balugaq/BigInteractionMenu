@@ -1,0 +1,9 @@
+name: '${name}'
+version: '${version}'
+main: com.balugaq.myproject.MyProject
+api-version: '1.21'
+depend: []
+softdepend: []
+loadBefore: []
+authors: [balugaq]
+description: 'This is MyProject's description'
