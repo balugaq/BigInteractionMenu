@@ -1,9 +1,17 @@
 name: '${name}'
 version: '${version}'
-main: com.balugaq.myproject.MyProject
-api-version: '1.21'
+main: com.balugaq.bim.MyPluginMain
+api-version: '1.20'
 depend: []
 softdepend: []
 loadBefore: []
 authors: [balugaq]
-description: 'This is MyProject's description'
+description: ""
+commands:
+  bim:
+    description: /bim
+    usage: /bim
+permissions:
+  bim:
+    description: Big Interaction Menu's main command
+    default: op

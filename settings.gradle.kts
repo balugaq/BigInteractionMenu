@@ -1,1 +1,1 @@
-rootProject.name = "MyProject"
+rootProject.name = "BigInteractionMenu"
