@@ -44,8 +44,12 @@ public final class MyPluginMain extends JavaPlugin {
 
     public void tickGrid() {
         for (Player p : Bukkit.getOnlinePlayers()) {
-            var unit = Util.getUnit(p);
-            if (unit == null) continue;
+            var unit = Util.getUnit(p, p.getEyeLocation());
+            if (unit == null) {
+                var old = GridDataCache.watching.get(p);
+                if (old != null) old.setTextOpacity((byte) 0);
+                return;
+            }
             var grid = unit.grid;
             grid.option.hover(unit, p);
             grid.waitTicks += 1;
@@ -60,7 +64,14 @@ public final class MyPluginMain extends JavaPlugin {
         // Plugin shutdown logic
         HandlerList.unregisterAll(instance());
         GridDataCache.activeGrids.values().forEach(g -> {
-            g.units.values().forEach(u -> u.itemDisplay.remove());
+            g.units.values().forEach(u -> {
+                u.itemDisplay.remove();
+                u.titleDisplay.remove();
+                u.amountDisplay.remove();
+            });
+            g.background.forEach(e -> {
+                e.remove();
+            });
         });
         GridDataCache.activeGrids.clear();
     }

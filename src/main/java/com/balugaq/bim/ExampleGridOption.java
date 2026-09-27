@@ -2,8 +2,10 @@ package com.balugaq.bim;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Material;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -23,37 +25,69 @@ public class ExampleGridOption extends GridOption {
 
     @Override
     public void initialize(int idx, InteractUnit unit) {
-        var stack = new ItemStack(Material.STONE, idx + 1);
+        var location = unit.location;
+        unit.itemDisplay = location.getWorld().spawn(location, ItemDisplay.class);
+        unit.titleDisplay = location.getWorld().spawn(location.clone().add(0, 0.03, 0), TextDisplay.class);
+        unit.amountDisplay = location.getWorld().spawn(location.clone().add(-0.02/* 0.04 - 0.02 * (idx % unit.grid.option.width + 1) / unit.grid.option.width */, 0.01, 0.005), TextDisplay.class);
+
+        var gap = 0.12f;
+        var stack = new ItemStack(Material.IRON_INGOT, idx + 1);
         unit.itemDisplay.setItemStack(stack);
-        unit.itemDisplay.setTransformation(TransformationBuilder.create().scale(0.25f).build());
+        unit.itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
+        unit.itemDisplay.setTransformation(TransformationBuilder.create().translation(-gap * 0.5f, gap * 0.5f, 0).scale(0.1f).leftRotation(0f, 1f, 0f, 0f).build());
+        unit.itemDisplay.setBrightness(new Display.Brightness(15, 15));
         unit.titleDisplay.text(stack.effectiveName());
         unit.titleDisplay.setAlignment(TextDisplay.TextAlignment.CENTER);
-        unit.titleDisplay.setInvisible(true);
+        unit.titleDisplay.setDefaultBackground(false);
+        unit.titleDisplay.setBackgroundColor(Color.fromARGB(0));
+        unit.titleDisplay.setBillboard(Display.Billboard.VERTICAL);
+        unit.titleDisplay.setBrightness(new Display.Brightness(15, 15));
+        unit.titleDisplay.setTextOpacity((byte) 0);
+        unit.titleDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).build());
         var s = Util.formatAmount(stack.getAmount());
-        unit.amountDisplay.setAlignment(TextDisplay.TextAlignment.RIGHT);
         unit.amountDisplay.text(Component.text().color(NamedTextColor.WHITE).append(Component.text(s)).build());
-        unit.amountDisplay.setDisplayWidth(0.1f * s.length());
-        unit.amountDisplay.setDisplayHeight(0.1f);
+        unit.amountDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).build());
+        unit.amountDisplay.setDefaultBackground(false);
+        unit.amountDisplay.setBackgroundColor(Color.fromARGB(0));
+        unit.amountDisplay.setBillboard(Display.Billboard.VERTICAL);
+        unit.amountDisplay.setBrightness(new Display.Brightness(15, 15));
     }
 
     @Override
     public void interact(InteractUnit unit, PlayerInteractEvent event) {
         event.getPlayer().sendMessage("Performed " + event.getAction() + " at idx:" + unit.getIdx());
+        event.setCancelled(true);
     }
 
     @Override
     public void hover(InteractUnit unit, Player player) {
-        unit.amountDisplay.setInvisible(false);
-        Bukkit.getScheduler().runTaskLater(MyPluginMain.instance(), () -> {
-            if (unit.amountDisplay.isValid()) {
-                unit.amountDisplay.setInvisible(true);
-            }
-        }, tickInterval());
+        unit.titleDisplay.setTextOpacity((byte) 1);
+        var old = GridDataCache.watching.put(player, unit.titleDisplay);
+        if (old != null) old.setTextOpacity((byte) 0);
     }
 
     @Override
-    public void scroll(ScrollResult result, PlayerItemHeldEvent event) {
-
+    public void scroll(ActiveGrid grid, ScrollResult result, PlayerItemHeldEvent event) {
+        if (event.getPlayer().isSneaking()) {
+            return;
+        }
+        event.getPlayer().sendMessage("Performed scroll " + result);
+        event.setCancelled(true);
+        switch (result) {
+            case UP -> {
+                grid.scrollOffset = Math.min(grid.scrollOffset + 1, (Math.max(0, entriesSize() - width * height) + width - 1) / width);
+            }
+            case DOWN -> {
+                grid.scrollOffset = Math.max(grid.scrollOffset - 1, 0);
+            }
+        }
+        grid.units.forEach((i, u) -> {
+            var stack = u.itemDisplay.getItemStack();
+            int amt = i + grid.scrollOffset * width;
+            stack.setAmount(amt);
+            u.itemDisplay.setItemStack(stack);
+            u.amountDisplay.text(Component.text().color(NamedTextColor.WHITE).append(Component.text(Util.formatAmount(amt))).build());
+        });
     }
 
     @Override

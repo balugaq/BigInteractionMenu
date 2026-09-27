@@ -13,7 +13,7 @@ public class BIMCommandExecutor implements TabExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         if (sender instanceof Player player) {
-            Util.placeGrid(player.getLocation(), ExampleGridOption.instance);
+            Util.placeGrid(BlockPos.from(player.getLocation()).toLocation(), ExampleGridOption.instance);
         }
         return true;
     }

@@ -25,6 +25,10 @@ public class BlockPos implements BlockPosition {
         return new BlockPos(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
 
+    public Location toLocation() {
+        return toLocation(world.get());
+    }
+
     @Override
     public int blockX() {
         return x;

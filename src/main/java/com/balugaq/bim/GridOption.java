@@ -16,8 +16,11 @@ public abstract class GridOption {
     public abstract void initialize(int idx, InteractUnit unit);
     public abstract void interact(InteractUnit unit, PlayerInteractEvent event);
     public abstract void hover(InteractUnit unit, Player player);
-    public abstract void scroll(ScrollResult result, PlayerItemHeldEvent event);
+    public abstract void scroll(ActiveGrid grid, ScrollResult result, PlayerItemHeldEvent event);
     public abstract void tick();
     public abstract int tickInterval(); // ticks
     public abstract int entriesSize();
+    public boolean defaultBackground() {
+        return true;
+    }
 }
