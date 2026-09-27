@@ -115,7 +115,7 @@ public class Util {
         active.units = units;
         GridDataCache.activeGrids.put(BlockPos.from(location), active);
         if (option.defaultBackground()) {
-            var bigBackground = location.getWorld().spawn(location.clone().add(gap * (option.width / 2f - 0.5), gap * 0.5, 0.001), TextDisplay.class);
+            var bigBackground = location.getWorld().spawn(location.clone().add(gap * (option.width / 2f + 0.5), -gap * 0.5, 0.001), TextDisplay.class);
             var scale = 0.2f;
             var blockWidth = gap * (option.width + 1);
             var blockPerText = 1f / 16f * 4f * scale;
@@ -130,22 +130,22 @@ public class Util {
             active.background.add(bigBackground);
 
             for (int w = 0; w <= option.width; w++) {
-                var divider = location.getWorld().spawn(location.clone().add(gap * (w - 0.5), gap * 0.5, 0.002), TextDisplay.class);
+                var divider = location.getWorld().spawn(location.clone().add(gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
                 divider.text(Component.text("你".repeat(Math.round(blockHeight / blockPerText * 8))));
                 divider.setTextOpacity((byte) 0);
                 divider.setTransformation(TransformationBuilder.create().scale(scale / 8).build());
-                divider.setBackgroundColor(Color.fromRGB(0xFFFFFF));
+                divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
                 divider.setBrightness(new Display.Brightness(15, 15));
                 divider.setLineWidth(1);
                 active.background.add(divider);
             }
 
             for (int h = 0; h <= option.height; h++) {
-                var divider = location.getWorld().spawn(location.clone().add(gap * (option.width / 2f - 0.5), gap * (option.height - h + 0.5), 0.003), TextDisplay.class);
+                var divider = location.getWorld().spawn(location.clone().add(gap * (option.width / 2f + 0.5), gap * (option.height - h - 0.5), 0.003), TextDisplay.class);
                 divider.text(Component.text("你".repeat(Math.round(blockWidth / blockPerText * 8))));
                 divider.setTextOpacity((byte) 0);
                 divider.setTransformation(TransformationBuilder.create().scale(scale / 8).build());
-                divider.setBackgroundColor(Color.fromRGB(0xFFFFFF));
+                divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
                 divider.setBrightness(new Display.Brightness(15, 15));
                 divider.setLineWidth(999999);
                 active.background.add(divider);

@@ -3,6 +3,7 @@ package com.balugaq.bim;
 import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -47,7 +48,10 @@ public final class MyPluginMain extends JavaPlugin {
             var unit = Util.getUnit(p, p.getEyeLocation());
             if (unit == null) {
                 var old = GridDataCache.watching.get(p);
-                if (old != null) old.setTextOpacity((byte) 0);
+                if (old != null) {
+                    old.left().setTextOpacity((byte) 0);
+                    old.right().setBrightness(new Display.Brightness(14, 14));
+                }
                 return;
             }
             var grid = unit.grid;

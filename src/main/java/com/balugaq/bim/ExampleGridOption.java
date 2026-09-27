@@ -1,5 +1,6 @@
 package com.balugaq.bim;
 
+import it.unimi.dsi.fastutil.Pair;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Color;
@@ -26,16 +27,16 @@ public class ExampleGridOption extends GridOption {
     @Override
     public void initialize(int idx, InteractUnit unit) {
         var location = unit.location;
-        unit.itemDisplay = location.getWorld().spawn(location, ItemDisplay.class);
-        unit.titleDisplay = location.getWorld().spawn(location.clone().add(0, 0.03, 0), TextDisplay.class);
-        unit.amountDisplay = location.getWorld().spawn(location.clone().add(-0.02/* 0.04 - 0.02 * (idx % unit.grid.option.width + 1) / unit.grid.option.width */, 0.01, 0.005), TextDisplay.class);
-
         var gap = 0.12f;
+        unit.itemDisplay = location.getWorld().spawn(location.clone().add(gap * 0.5f, -gap * 0.5f, 0), ItemDisplay.class);
+        unit.titleDisplay = location.getWorld().spawn(location.clone().add(0 + gap, 0.03 - gap, 0.05), TextDisplay.class);
+        unit.amountDisplay = location.getWorld().spawn(location.clone().add(-0.02 + gap, 0.01 - gap, 0.004), TextDisplay.class);
+
         var stack = new ItemStack(Material.IRON_INGOT, idx + 1);
         unit.itemDisplay.setItemStack(stack);
         unit.itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
-        unit.itemDisplay.setTransformation(TransformationBuilder.create().translation(-gap * 0.5f, gap * 0.5f, 0).scale(0.1f).leftRotation(0f, 1f, 0f, 0f).build());
-        unit.itemDisplay.setBrightness(new Display.Brightness(15, 15));
+        unit.itemDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).leftRotation(0f, 1f, 0f, 0f).build());
+        unit.itemDisplay.setBrightness(new Display.Brightness(12, 12));
         unit.titleDisplay.text(stack.effectiveName());
         unit.titleDisplay.setAlignment(TextDisplay.TextAlignment.CENTER);
         unit.titleDisplay.setDefaultBackground(false);
@@ -62,8 +63,12 @@ public class ExampleGridOption extends GridOption {
     @Override
     public void hover(InteractUnit unit, Player player) {
         unit.titleDisplay.setTextOpacity((byte) 1);
-        var old = GridDataCache.watching.put(player, unit.titleDisplay);
-        if (old != null) old.setTextOpacity((byte) 0);
+        unit.itemDisplay.setBrightness(new Display.Brightness(15, 15));
+        var old = GridDataCache.watching.put(player, Pair.of(unit.titleDisplay, unit.itemDisplay));
+        if (old != null && unit.titleDisplay != old.left()) {
+            old.left().setTextOpacity((byte) 0);
+            old.right().setBrightness(new Display.Brightness(12, 12));
+        }
     }
 
     @Override
