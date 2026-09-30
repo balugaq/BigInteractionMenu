@@ -13,6 +13,7 @@ public abstract class GridOption {
     final String identifier;
     final @Range(from = 1, to = Integer.MAX_VALUE) int height;
     final @Range(from = 1, to = Integer.MAX_VALUE) int width;
+    final float gap;
     public abstract void initialize(int idx, InteractUnit unit);
     public abstract void interact(InteractUnit unit, PlayerInteractEvent event);
     public abstract void hover(InteractUnit unit, Player player);

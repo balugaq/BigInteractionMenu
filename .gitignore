@@ -137,3 +137,4 @@ gradle-app.setting
 bin/
 gradle.properties
 .gradle-local/
+.workbuddy/

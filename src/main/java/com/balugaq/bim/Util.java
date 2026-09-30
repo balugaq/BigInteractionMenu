@@ -97,11 +97,11 @@ public class Util {
     public static void placeGrid(Location location, GridOption option) {
         var active = new ActiveGrid(option);
         Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
-        var gap = 0.12f;
+        var gap = option.gap;
         for (int h = 0; h < option.height; h++) {
             for (int w = 0; w < option.width; w++) {
                 Location loc = location.clone().add(gap * (w + 0.5), gap * (option.height - h - 0.5), 0);
-                int i = h * 9 + w;
+                int i = h * option.width + w;
                 var unit = new InteractUnit(i, loc, active);
                 option.initialize(i, unit);
                 units.put(i, unit);

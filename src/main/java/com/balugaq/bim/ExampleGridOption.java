@@ -17,7 +17,7 @@ public class ExampleGridOption extends GridOption {
     static ExampleGridOption instance = new ExampleGridOption();
 
     public ExampleGridOption() {
-        super("example", 9, 9);
+        super("example", 9, 9, 0.12f);
     }
 
     public void load() {
@@ -27,7 +27,7 @@ public class ExampleGridOption extends GridOption {
     @Override
     public void initialize(int idx, InteractUnit unit) {
         var location = unit.location;
-        var gap = 0.12f;
+        var gap = this.gap;
         unit.itemDisplay = location.getWorld().spawn(location.clone().add(gap * 0.5f, -gap * 0.5f, 0), ItemDisplay.class);
         unit.titleDisplay = location.getWorld().spawn(location.clone().add(0 + gap, 0.03 - gap, 0.05), TextDisplay.class);
         unit.amountDisplay = location.getWorld().spawn(location.clone().add(-0.02 + gap, 0.01 - gap, 0.004), TextDisplay.class);
