@@ -12,5 +12,5 @@ import java.util.Map;
 public class GridDataCache {
     public static final Map<BlockPos, ActiveGrid> activeGrids = new HashMap<>();
     public static final Map<Display, InteractUnit> index = new HashMap<>();
-    public static final Map<Player, Pair<TextDisplay, ItemDisplay>> watching = new HashMap<>();
+    public static final Map<Player, InteractUnit> watching = new HashMap<>();
 }

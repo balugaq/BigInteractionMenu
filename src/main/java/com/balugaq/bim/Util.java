@@ -19,6 +19,8 @@ import java.util.HashSet;
 public class Util {
     public static final NamespacedKey IDX_KEY = new NamespacedKey(MyPluginMain.instance(), "idx");
     public static final NamespacedKey OPTION_ID_KEY = new NamespacedKey(MyPluginMain.instance(), "option_identifier");
+    public static final Display.Brightness MDB = new Display.Brightness(15, 15);
+    public static final Display.Brightness KDB = new Display.Brightness(12, 12);
 
     @Nullable
     public static <T extends Entity> T rayEntity(Vector origin, Vector direction, Collection<T> candidates) {
@@ -91,17 +93,17 @@ public class Util {
     }
 
     public static int pixelToLineWidth(float pixel) {
-        return Math.round((pixel - 0.07173f) / 0.109705f);
+        return Math.round(pixel * 8.0f);
     }
 
     public static void placeGrid(Location location, GridOption option) {
         var active = new ActiveGrid(option);
         Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
-        var gap = option.gap;
-        for (int h = 0; h < option.height; h++) {
-            for (int w = 0; w < option.width; w++) {
-                Location loc = location.clone().add(gap * (w + 0.5), gap * (option.height - h - 0.5), 0);
-                int i = h * option.width + w;
+        var gap = option.getGap();
+        for (int h = 0; h < option.getHeight(); h++) {
+            for (int w = 0; w < option.getWidth(); w++) {
+                Location loc = location.clone().add(gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
+                int i = h * option.getWidth() + w;
                 var unit = new InteractUnit(i, loc, active);
                 option.initialize(i, unit);
                 units.put(i, unit);
@@ -115,42 +117,61 @@ public class Util {
         active.units = units;
         GridDataCache.activeGrids.put(BlockPos.from(location), active);
         if (option.defaultBackground()) {
-            var bigBackground = location.getWorld().spawn(location.clone().add(gap * (option.width / 2f + 0.5), -gap * 0.5, 0.001), TextDisplay.class);
+            var bigBackground = location.getWorld().spawn(location.clone().add(gap * (option.getWidth() / 2f + 0.5), -gap * 0.5, 0.001), TextDisplay.class);
             var scale = 0.2f;
-            var blockWidth = gap * (option.width + 1);
+            var blockWidth = gap * (option.getWidth() + 1);
             var blockPerText = 1f / 16f * 4f * scale;
-            var blockHeight = gap * option.height;
-            var c = Component.text("你".repeat(Math.round((blockWidth / blockPerText) * (blockHeight / blockPerText) * 16f)));
+            var blockHeight = gap * option.getHeight();
+            var precision = 4f;
+            var c = Component.text("你".repeat(Math.round((blockWidth / blockPerText) * (blockHeight / blockPerText) * 4f * precision)));
             bigBackground.text(c);
             bigBackground.setTextOpacity((byte) 0);
-            bigBackground.setTransformation(TransformationBuilder.create().scale(scale / 4).build());
+            bigBackground.setTransformation(TransformationBuilder.create().scale(scale / precision).build());
             bigBackground.setBackgroundColor(Color.fromRGB(0x8B8B8B));
-            bigBackground.setBrightness(new Display.Brightness(15, 15));
-            bigBackground.setLineWidth(pixelToLineWidth(Math.round(blockWidth / blockPerText) * 4) - 2);
+            bigBackground.setBrightness(MDB);
+            bigBackground.setLineWidth(pixelToLineWidth(blockWidth / blockPerText * precision) - 2);
             active.background.add(bigBackground);
 
-            for (int w = 0; w <= option.width; w++) {
+            for (int w = 0; w <= option.getWidth(); w++) {
                 var divider = location.getWorld().spawn(location.clone().add(gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
-                divider.text(Component.text("你".repeat(Math.round(blockHeight / blockPerText * 8))));
+                divider.text(Component.text("你".repeat(Math.round(blockHeight / blockPerText * 2 * precision))));
                 divider.setTextOpacity((byte) 0);
-                divider.setTransformation(TransformationBuilder.create().scale(scale / 8).build());
+                divider.setTransformation(TransformationBuilder.create().scale(scale / 2 / precision).build());
                 divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
-                divider.setBrightness(new Display.Brightness(15, 15));
+                divider.setBrightness(MDB);
                 divider.setLineWidth(1);
                 active.background.add(divider);
             }
 
-            for (int h = 0; h <= option.height; h++) {
-                var divider = location.getWorld().spawn(location.clone().add(gap * (option.width / 2f + 0.5), gap * (option.height - h - 0.5), 0.003), TextDisplay.class);
-                divider.text(Component.text("你".repeat(Math.round(blockWidth / blockPerText * 8))));
+            for (int h = 0; h <= option.getHeight(); h++) {
+                var divider = location.getWorld().spawn(location.clone().add(gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - h - 0.5), 0.003), TextDisplay.class);
+                divider.text(Component.text("你".repeat(Math.round(blockWidth / blockPerText * 2 * precision))));
                 divider.setTextOpacity((byte) 0);
-                divider.setTransformation(TransformationBuilder.create().scale(scale / 8).build());
+                divider.setTransformation(TransformationBuilder.create().scale(scale / 2 / precision).build());
                 divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
-                divider.setBrightness(new Display.Brightness(15, 15));
+                divider.setBrightness(MDB);
                 divider.setLineWidth(999999);
                 active.background.add(divider);
             }
         }
+    }
+
+    public static void removeGrid(BlockPos pos) {
+        var active = GridDataCache.activeGrids.remove(pos);
+        if (active == null) return;
+        for (var unit : active.units.values()) {
+            GridDataCache.index.remove(unit.itemDisplay);
+            GridDataCache.index.remove(unit.titleDisplay);
+            GridDataCache.index.remove(unit.amountDisplay);
+            unit.itemDisplay.remove();
+            unit.titleDisplay.remove();
+            unit.amountDisplay.remove();
+        }
+        for (var display : active.background) {
+            display.remove();
+        }
+        GridDataCache.watching.values().removeIf(pair ->
+                pair.itemDisplay.isDead() || !pair.itemDisplay.isValid());
     }
 
     public static Vector getDirection(float yaw, float pitch) {

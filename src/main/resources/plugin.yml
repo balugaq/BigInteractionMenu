@@ -9,8 +9,8 @@ authors: [balugaq]
 description: ""
 commands:
   bim:
-    description: /bim
-    usage: /bim
+    description: /bim [w|h|gap|show|reset]
+    usage: /bim [w <width> | h <height> | gap <gap> | show | reset]
 permissions:
   bim:
     description: Big Interaction Menu's main command

@@ -4,6 +4,7 @@ import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -49,8 +50,8 @@ public final class MyPluginMain extends JavaPlugin {
             if (unit == null) {
                 var old = GridDataCache.watching.get(p);
                 if (old != null) {
-                    old.left().setTextOpacity((byte) 0);
-                    old.right().setBrightness(new Display.Brightness(14, 14));
+                    old.titleDisplay.setTextOpacity((byte) 0);
+                    old.itemDisplay.setBrightness(Util.KDB);
                 }
                 return;
             }
@@ -73,9 +74,7 @@ public final class MyPluginMain extends JavaPlugin {
                 u.titleDisplay.remove();
                 u.amountDisplay.remove();
             });
-            g.background.forEach(e -> {
-                e.remove();
-            });
+            g.background.forEach(Entity::remove);
         });
         GridDataCache.activeGrids.clear();
     }

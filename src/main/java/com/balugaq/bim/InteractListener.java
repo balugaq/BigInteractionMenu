@@ -10,7 +10,7 @@ public class InteractListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
-        var unit = Util.getUnit(event.getPlayer(), Util.either(event.getInteractionPoint(), event.getPlayer().getEyeLocation()));
+        var unit = Util.getUnit(event.getPlayer(), event.getPlayer().getEyeLocation());
         if (unit == null) return;
         unit.grid.option.interact(unit, event);
     }
