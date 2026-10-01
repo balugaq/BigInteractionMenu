@@ -1,5 +1,7 @@
 package com.balugaq.bim;
 
+import com.balugaq.bim.events.PlayerOffGridEvent;
+import com.balugaq.bim.events.PlayerOffHoverUnitEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
@@ -61,7 +63,7 @@ public class GridUtil {
     @Nullable
     public static InteractUnit asInteractUnit(@Nullable Entity entity) {
         if (entity == null) return null;
-        return GridDataCache.index.get(entity);
+        return GridDataCache.index().get(entity);
     }
 
     public static String formatAmount(long amount) {
@@ -102,17 +104,17 @@ public class GridUtil {
                 Location loc = o.apply(location, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
                 int i = h * option.getWidth() + w;
                 var unit = new InteractUnit(i, loc, active);
-                option.initialize(i, unit);
+                option.init(i, unit);
                 units.put(i, unit);
             }
         }
         units.values().forEach(u -> {
-            GridDataCache.index.put(u.itemDisplay, u);
-            GridDataCache.index.put(u.titleDisplay, u);
-            GridDataCache.index.put(u.amountDisplay, u);
+            GridDataCache.index().put(u.itemDisplay, u);
+            GridDataCache.index().put(u.titleDisplay, u);
+            GridDataCache.index().put(u.amountDisplay, u);
         });
         active.units = units;
-        GridDataCache.activeGrids.put(BlockPos.from(location), active);
+        GridDataCache.activeGrids().put(BlockPos.from(location), active);
         if (option.defaultBackground()) {
             addDefaultBackground(active, location);
         }
@@ -172,12 +174,12 @@ public class GridUtil {
     }
 
     public static void removeGrid(BlockPos pos) {
-        var active = GridDataCache.activeGrids.remove(pos);
+        var active = GridDataCache.activeGrids().remove(pos);
         if (active == null) return;
         for (var unit : active.units.values()) {
-            GridDataCache.index.remove(unit.itemDisplay);
-            GridDataCache.index.remove(unit.titleDisplay);
-            GridDataCache.index.remove(unit.amountDisplay);
+            GridDataCache.index().remove(unit.itemDisplay);
+            GridDataCache.index().remove(unit.titleDisplay);
+            GridDataCache.index().remove(unit.amountDisplay);
             unit.itemDisplay.remove();
             unit.titleDisplay.remove();
             unit.amountDisplay.remove();
@@ -185,11 +187,30 @@ public class GridUtil {
         for (var display : active.background) {
             display.remove();
         }
-        GridDataCache.watching.values().removeIf(pair ->
-            pair.itemDisplay.isDead() || !pair.itemDisplay.isValid());
+        GridDataCache.watching().values().removeIf(u ->
+            u.itemDisplay.isDead() || !u.itemDisplay.isValid()
+            || u.titleDisplay.isDead() || !u.titleDisplay.isValid()
+            || u.amountDisplay.isDead() || !u.amountDisplay.isValid()
+        );
     }
 
-    private static Vector getDirection(float yaw, float pitch) {
+    public static void offGrid(Player player) {
+        var u = GridDataCache.watching().remove(player.getUniqueId());
+        if (u != null) {
+            new PlayerOffGridEvent(player, u.grid).callEvent();
+            u.grid.viewers.remove(player.getUniqueId());
+            offHover(u, player);
+        }
+    }
+
+    public static void offHover(InteractUnit old, Player p) {
+        new PlayerOffHoverUnitEvent(p, old).callEvent();
+        old.grid.option.offHover(old, p);
+        old.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
+        old.itemDisplay.setBrightness(GridUtil.KDB);
+    }
+
+    public static Vector getDirection(float yaw, float pitch) {
         double yawRad = Math.toRadians(yaw);
         double pitchRad = Math.toRadians(pitch);
 

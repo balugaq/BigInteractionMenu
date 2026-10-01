@@ -28,7 +28,7 @@ public abstract class ActiveGridOption extends GridOption {
     }
 
     @Override
-    public void initialize(int idx, InteractUnit unit) {
+    public void init(int idx, InteractUnit unit) {
         var location = unit.location;
         var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
         var gap = getGap();
@@ -66,11 +66,13 @@ public abstract class ActiveGridOption extends GridOption {
         unit.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_SHOWN);
         unit.itemDisplay.setBrightness(GridUtil.MDB);
         unit.amountDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_SHOWN);
-        var old = GridDataCache.watching.put(player, unit);
+        var old = GridDataCache.watching().put(player.getUniqueId(), unit);
+        unit.grid.viewers.add(player.getUniqueId());
         if (old != null && unit != old) {
             old.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
             old.itemDisplay.setBrightness(GridUtil.KDB);
             old.amountDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
+            old.grid.viewers.remove(player.getUniqueId());
         }
     }
 

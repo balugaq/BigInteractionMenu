@@ -41,20 +41,22 @@ public final class BIMMain extends JavaPlugin {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(new MenuListener(), this);
-        Bukkit.getScheduler().runTaskTimer(instance(), this::tickGrid, 0, 1);
+        Bukkit.getScheduler().runTaskTimer(instance(), this::tickGridAndHoverCheck, 0, 1);
     }
 
-    public void tickGrid() {
+    public void tickGridAndHoverCheck() {
         for (Player p : Bukkit.getOnlinePlayers()) {
             var unit = GridUtil.rayTraceUnit(p);
+            var old = GridDataCache.watching().get(p.getUniqueId());
             if (unit == null) {
-                var old = GridDataCache.watching.get(p);
                 if (old != null) {
-                    old.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
-                    old.itemDisplay.setBrightness(GridUtil.KDB);
+                    GridUtil.offGrid(p);
+                    GridUtil.offHover(old, p);
                 }
                 continue;
             }
+            if (unit != old) GridUtil.offGrid(p);
+            GridUtil.offHover(old, p);
             var grid = unit.grid;
             grid.option.onHover(unit, p);
             grid.waitTicks += 1;
@@ -67,7 +69,7 @@ public final class BIMMain extends JavaPlugin {
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(instance());
-        GridDataCache.activeGrids.values().forEach(g -> {
+        GridDataCache.activeGrids().values().forEach(g -> {
             g.units.values().forEach(u -> {
                 u.itemDisplay.remove();
                 u.titleDisplay.remove();
@@ -75,7 +77,7 @@ public final class BIMMain extends JavaPlugin {
             });
             g.background.forEach(Entity::remove);
         });
-        GridDataCache.activeGrids.clear();
+        GridDataCache.activeGrids().clear();
     }
 
     private void setupLibraries() {

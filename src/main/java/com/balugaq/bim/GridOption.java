@@ -41,9 +41,11 @@ public abstract class GridOption {
         GridUtil.placeGrid(location, this);
     }
 
-    public abstract void initialize(int idx, InteractUnit unit);
+    public abstract void init(int idx, InteractUnit unit);
 
     public abstract void onHover(InteractUnit unit, Player player);
+
+    public abstract void offHover(InteractUnit unit, Player player);
 
     public abstract void onScroll(ActiveGrid active, ScrollResult result, int delta, PlayerItemHeldEvent event);
 

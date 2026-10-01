@@ -1,6 +1,7 @@
 package com.balugaq.bim;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.entity.TextDisplay;
@@ -10,13 +11,14 @@ import org.jspecify.annotations.NullMarked;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 /**
  * @author balugaq
  */
 @NullMarked
 @Data
-@RequiredArgsConstructor
+@RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class ActiveGrid {
     final GridOption option;
     Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
@@ -24,10 +26,18 @@ public class ActiveGrid {
     int scrollOffset;
     int waitTicks;
 
+    final Set<UUID> viewers = new HashSet<>();
     final Int2ObjectOpenHashMap<ItemStack> items = new Int2ObjectOpenHashMap<>();
     final Int2ObjectOpenHashMap<ClickHandler> clickHandlers = new Int2ObjectOpenHashMap<>();
 
+    private void checkBound(int slot) {
+        if (slot < 0 || slot >= option.width * option.height) {
+            throw new IndexOutOfBoundsException(slot);
+        }
+    }
+
     public void setItem(int slot, ItemStack item) {
+        checkBound(slot);
         items.put(slot, item);
         option.updateDisplayItem(this, slot, getUnit(slot));
     }

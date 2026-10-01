@@ -1,13 +1,25 @@
 package com.balugaq.bim;
 
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 public class GridDataCache {
-    public static final Map<BlockPos, ActiveGrid> activeGrids = new HashMap<>();
-    public static final Map<Entity, InteractUnit> index = new HashMap<>();
-    public static final Map<Player, InteractUnit> watching = new HashMap<>();
+    private static final Map<BlockPos, ActiveGrid> activeGrids = new HashMap<>();
+    private static final Map<Entity, InteractUnit> index = new HashMap<>();
+    private static final Map<UUID, InteractUnit> watching = new HashMap<>();
+
+    public static Map<BlockPos, ActiveGrid> activeGrids() {
+        return activeGrids;
+    }
+
+    public static Map<Entity, InteractUnit> index() {
+        return index;
+    }
+
+    public static Map<UUID, InteractUnit> watching() {
+        return watching;
+    }
 }
