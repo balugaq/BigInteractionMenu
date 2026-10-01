@@ -1,6 +1,6 @@
 package com.balugaq.bim.events;
 
-import com.balugaq.bim.ClickDTO;
+import com.balugaq.bim.grid.ClickDTO;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.event.Cancellable;

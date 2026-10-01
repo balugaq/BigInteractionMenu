@@ -1,6 +1,6 @@
 package com.balugaq.bim.events;
 
-import com.balugaq.bim.InteractUnit;
+import com.balugaq.bim.grid.InteractUnit;
 import lombok.Getter;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;

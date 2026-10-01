@@ -1,4 +1,4 @@
-package com.balugaq.bim;
+package com.balugaq.bim.general;
 
 import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;

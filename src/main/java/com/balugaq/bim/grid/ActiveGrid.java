@@ -1,4 +1,4 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.AccessLevel;
@@ -22,7 +22,7 @@ import java.util.UUID;
 public class ActiveGrid {
     final GridOption option;
     Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
-    Set<TextDisplay> background = new HashSet<>();
+    Set<TextDisplay> backgrounds = new HashSet<>();
     int scrollOffset;
     int waitTicks;
 

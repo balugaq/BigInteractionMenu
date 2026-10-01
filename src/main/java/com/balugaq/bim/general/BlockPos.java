@@ -1,4 +1,4 @@
-package com.balugaq.bim;
+package com.balugaq.bim.general;
 
 import io.papermc.paper.math.BlockPosition;
 import org.bukkit.Location;

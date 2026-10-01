@@ -1,4 +1,4 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
 import lombok.Data;
 import org.bukkit.Location;

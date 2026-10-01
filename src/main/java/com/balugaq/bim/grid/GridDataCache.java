@@ -1,5 +1,6 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
+import com.balugaq.bim.general.BlockPos;
 import org.bukkit.entity.Entity;
 
 import java.util.HashMap;

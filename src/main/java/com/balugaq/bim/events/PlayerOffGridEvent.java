@@ -1,11 +1,8 @@
 package com.balugaq.bim.events;
 
-import com.balugaq.bim.ActiveGrid;
-import com.balugaq.bim.ScrollResult;
+import com.balugaq.bim.grid.ActiveGrid;
 import lombok.Getter;
-import lombok.Setter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
 import org.jspecify.annotations.NullMarked;

@@ -1,5 +1,6 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
+import com.balugaq.bim.BIMMain;
 import org.bukkit.NamespacedKey;
 import org.jspecify.annotations.NullMarked;
 

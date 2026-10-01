@@ -1,10 +1,13 @@
 package com.balugaq.bim;
 
+import com.balugaq.bim.grid.GridDataCache;
+import com.balugaq.bim.grid.GridOptionRegistry;
+import com.balugaq.bim.grid.GridTickTask;
+import com.balugaq.bim.grid.MenuListener;
 import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jspecify.annotations.NullMarked;
@@ -41,41 +44,19 @@ public final class BIMMain extends JavaPlugin {
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(new MenuListener(), this);
-        Bukkit.getScheduler().runTaskTimer(instance(), this::tickGridAndHoverCheck, 0, 1);
-    }
-
-    public void tickGridAndHoverCheck() {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            var unit = GridUtil.rayTraceUnit(p);
-            var old = GridDataCache.watching().get(p.getUniqueId());
-            if (unit == null) {
-                if (old != null) {
-                    GridUtil.offGrid(p);
-                    GridUtil.offHover(old, p);
-                }
-                continue;
-            }
-            if (unit != old) GridUtil.offGrid(p);
-            GridUtil.offHover(old, p);
-            var grid = unit.grid;
-            grid.option.onHover(unit, p);
-            grid.waitTicks += 1;
-            if (grid.waitTicks % grid.option.tickInterval() == 0) {
-                grid.option.tick();
-            }
-        }
+        Bukkit.getScheduler().runTaskTimer(instance(), new GridTickTask(), 0, 1);
     }
 
     @Override
     public void onDisable() {
         HandlerList.unregisterAll(instance());
         GridDataCache.activeGrids().values().forEach(g -> {
-            g.units.values().forEach(u -> {
-                u.itemDisplay.remove();
-                u.titleDisplay.remove();
-                u.amountDisplay.remove();
+            g.getUnits().values().forEach(u -> {
+                u.getItemDisplay().remove();
+                u.getTitleDisplay().remove();
+                u.getAmountDisplay().remove();
             });
-            g.background.forEach(Entity::remove);
+            g.getBackgrounds().forEach(Entity::remove);
         });
         GridDataCache.activeGrids().clear();
     }

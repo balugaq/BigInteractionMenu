@@ -1,4 +1,4 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
 import com.balugaq.bim.events.PlayerInteractUnitEvent;
 import com.balugaq.bim.events.PlayerScrollGridEvent;

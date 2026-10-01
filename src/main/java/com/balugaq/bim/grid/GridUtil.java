@@ -1,5 +1,7 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
+import com.balugaq.bim.general.BlockPos;
+import com.balugaq.bim.general.TransformationBuilder;
 import com.balugaq.bim.events.PlayerOffGridEvent;
 import com.balugaq.bim.events.PlayerOffHoverUnitEvent;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
@@ -142,7 +144,7 @@ public class GridUtil {
             bg.setBackgroundColor(Color.fromRGB(0x8B8B8B));
             bg.setBrightness(MDB);
             bg.setLineWidth(999999);
-            active.background.add(bg);
+            active.backgrounds.add(bg);
         }
 
         var s = ".\n".repeat(Math.round(blockHeight / heightPerText * precision));
@@ -157,7 +159,7 @@ public class GridUtil {
             divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
             divider.setBrightness(MDB);
             divider.setLineWidth(1);
-            active.background.add(divider);
+            active.backgrounds.add(divider);
         }
 
         for (int h = 0; h <= option.getHeight(); h++) {
@@ -169,7 +171,7 @@ public class GridUtil {
             divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
             divider.setBrightness(MDB);
             divider.setLineWidth(999999);
-            active.background.add(divider);
+            active.backgrounds.add(divider);
         }
     }
 
@@ -184,7 +186,7 @@ public class GridUtil {
             unit.titleDisplay.remove();
             unit.amountDisplay.remove();
         }
-        for (var display : active.background) {
+        for (var display : active.backgrounds) {
             display.remove();
         }
         GridDataCache.watching().values().removeIf(u ->

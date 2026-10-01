@@ -1,7 +1,6 @@
 package com.balugaq.bim.events;
 
-import com.balugaq.bim.ClickDTO;
-import com.balugaq.bim.ScrollResult;
+import com.balugaq.bim.grid.ScrollResult;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;

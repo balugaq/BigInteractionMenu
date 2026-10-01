@@ -1,4 +1,4 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEvent;

@@ -1,5 +1,6 @@
-package com.balugaq.bim;
+package com.balugaq.bim.grid;
 
+import com.balugaq.bim.general.TransformationBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Color;
