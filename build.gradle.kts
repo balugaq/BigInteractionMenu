@@ -143,7 +143,7 @@ publishing {
 
             pom {
                 name = "${name}"
-                description = "This is MyProject's description"
+                description = "Grid-based instant interaction menu library for Minecraft Paper, powered by display entities"
                 url = "https://github.com/balugaq/${name}"
                 licenses {
                     license {
