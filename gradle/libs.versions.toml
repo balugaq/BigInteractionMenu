@@ -1,6 +1,6 @@
 [versions]
 shadow = "9.3.2"
-paper = "1.21.11-R0.1-SNAPSHOT"
+paper = "26.2.build.129-stable"
 lombok = "1.18.46"
 junit = "5.11.4"
 mockito = "5.14.2"
