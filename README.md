@@ -6,6 +6,8 @@
 
 物品网格、视线悬停高亮、滚轮翻页、点击交互——不占用任何容器 GUI，玩家直接与摆在世界里的菜单交互。
 
+![img.png](images/img.png)
+
 > 写过 Slimefun 的 `BlockMenuPreset` / `ChestMenu`？API 是同款思路，秒上手。
 
 ## 特性
