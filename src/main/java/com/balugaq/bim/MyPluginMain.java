@@ -50,10 +50,10 @@ public final class MyPluginMain extends JavaPlugin {
             if (unit == null) {
                 var old = GridDataCache.watching.get(p);
                 if (old != null) {
-                    old.titleDisplay.setTextOpacity((byte) 0);
+                    old.titleDisplay.setTextOpacity(Util.TEXT_OPACITY_HIDDEN);
                     old.itemDisplay.setBrightness(Util.KDB);
                 }
-                return;
+                continue;
             }
             var grid = unit.grid;
             grid.option.hover(unit, p);

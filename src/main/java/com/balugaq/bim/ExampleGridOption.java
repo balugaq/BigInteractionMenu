@@ -72,7 +72,7 @@ public class ExampleGridOption extends GridOption {
         var o = getOrientation();
         var gap = getGap();
         unit.itemDisplay = location.getWorld().spawn(o.apply(location, gap * 0.5f, -gap * 0.5f, 0), ItemDisplay.class);
-        unit.titleDisplay = location.getWorld().spawn(o.apply(location, gap, 0.03 - gap, 0.1), TextDisplay.class);
+        unit.titleDisplay = location.getWorld().spawn(o.apply(location, gap * 0.5f, 0.03, 0.005), TextDisplay.class);
         unit.amountDisplay = location.getWorld().spawn(o.apply(location, gap - 0.02, 0.01 - gap, 0.004), TextDisplay.class);
 
         var stack = new ItemStack(Material.IRON_INGOT, idx + 1);
@@ -86,7 +86,7 @@ public class ExampleGridOption extends GridOption {
         unit.titleDisplay.setBackgroundColor(Color.fromARGB(0));
         unit.titleDisplay.setBillboard(o.isHorizontal() ? Display.Billboard.CENTER : Display.Billboard.VERTICAL);
         unit.titleDisplay.setBrightness(Util.MDB);
-//        unit.titleDisplay.setTextOpacity((byte) 0);
+        unit.titleDisplay.setTextOpacity(Util.TEXT_OPACITY_HIDDEN);
         unit.titleDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).build());
         var s = Util.formatAmount(stack.getAmount());
         unit.amountDisplay.text(Component.text().color(NamedTextColor.WHITE).append(Component.text(s)).build());
@@ -105,11 +105,11 @@ public class ExampleGridOption extends GridOption {
 
     @Override
     public void hover(InteractUnit unit, Player player) {
-        unit.titleDisplay.setTextOpacity((byte) 1);
+        unit.titleDisplay.setTextOpacity(Util.TEXT_OPACITY_SHOWN);
         unit.itemDisplay.setBrightness(Util.MDB);
         var old = GridDataCache.watching.put(player, unit);
         if (old != null && unit != old) {
-            old.titleDisplay.setTextOpacity((byte) 0);
+            old.titleDisplay.setTextOpacity(Util.TEXT_OPACITY_HIDDEN);
             old.itemDisplay.setBrightness(Util.KDB);
         }
     }

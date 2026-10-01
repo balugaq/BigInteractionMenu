@@ -21,6 +21,16 @@ public class Util {
     public static final NamespacedKey OPTION_ID_KEY = new NamespacedKey(MyPluginMain.instance(), "option_identifier");
     public static final Display.Brightness MDB = new Display.Brightness(15, 15);
     public static final Display.Brightness KDB = new Display.Brightness(12, 12);
+    /**
+     * text_opacity：完全透明。0 在所有版本都可靠。
+     * 注意：不要用 1~26 当"显示"——4~26 会被客户端着色器按 alpha<0.1 丢弃，
+     * 1~3 在部分版本按 1/255 渲染（同样不可见），部分版本才特判为不透明。
+     */
+    public static final byte TEXT_OPACITY_HIDDEN = (byte) 0;
+    /**
+     * text_opacity：完全不透明。255（默认值 -1）在所有版本都可靠。
+     */
+    public static final byte TEXT_OPACITY_SHOWN = (byte) 255;
 
     @Nullable
     public static <T extends Entity> T rayEntity(Vector origin, Vector direction, Collection<T> candidates) {
@@ -93,7 +103,7 @@ public class Util {
     }
 
     public static int pixelToLineWidth(float pixel) {
-        return Math.round(pixel * 40.0f / 4.8f);
+        return Math.round(pixel * 9.0f);
     }
 
     public static void placeGrid(Location location, GridOption option) {
