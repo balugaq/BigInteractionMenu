@@ -4,29 +4,35 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.bukkit.Location;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Range;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.UUID;
 
 /**
+ * 类似 Slimefun 的 ChestMenu
+ *
  * @author balugaq
  */
 @NullMarked
 @Data
 @RequiredArgsConstructor(access = AccessLevel.PACKAGE)
 public class ActiveGrid {
-    final GridOption option;
+    final Location location;
+    final GridPreset option;
+    final GridOrientation orientation;
     Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
     Set<TextDisplay> backgrounds = new HashSet<>();
     int scrollOffset;
     int waitTicks;
+    boolean isDisplaying;
 
-    final Set<UUID> viewers = new HashSet<>();
     final Int2ObjectOpenHashMap<ItemStack> items = new Int2ObjectOpenHashMap<>();
     final Int2ObjectOpenHashMap<ClickHandler> clickHandlers = new Int2ObjectOpenHashMap<>();
 
@@ -36,17 +42,55 @@ public class ActiveGrid {
         }
     }
 
-    public void setItem(int slot, ItemStack item) {
+    /**
+     * 设置并更新物品显示
+     */
+    public void setItem(@Range(from = 0, to = Integer.MAX_VALUE) int slot, ItemStack item) {
         checkBound(slot);
         items.put(slot, item);
         option.updateDisplayItem(this, slot, getUnit(slot));
     }
 
-    public @Nullable InteractUnit getUnit(int slot) {
+    /**
+     * 设置 slot 所在的物品
+     */
+    public void setItemUnsafe(@Range(from = 0, to = Integer.MAX_VALUE) int slot, ItemStack item) {
+        checkBound(slot);
+        items.put(slot, item);
+    }
+
+    /**
+     * 获取 InteractUnit
+     */
+    public @Nullable InteractUnit getUnit(@Range(from = 0, to = Integer.MAX_VALUE) int slot) {
         return units.get(slot);
     }
 
-    public @Nullable ItemStack getItemInSlot(int slot) {
+    /**
+     * 获取 slot 所在的物品
+     */
+    public @Nullable ItemStack getItemInSlot(@Range(from = 0, to = Integer.MAX_VALUE) int slot) {
         return items.get(slot);
+    }
+
+    /**
+     * 有玩家进入这个 Showing Box 内时就会触发 {@link GridPreset#onShow(ActiveGrid)}
+     * 多个玩家进入只会触发 1 次
+     */
+    public BoundingBox getShowingBoundingBox() {
+        Location location1 = orientation.apply(location, option.gap * (option.getWidth() + 0.5), -option.gap * 0.5, 0);;
+        Location location2 = orientation.apply(location, option.gap * (+ 0.5), option.gap * (option.getHeight() - 0.5), 0);;
+
+        return BoundingBox.of(location1, location2).expand(GridUtil.SHOW_DISTANCE);
+    }
+
+    /**
+     * 没有玩家在这个 Hiding Box 范围内时就会触发 {@link GridPreset#onHide(ActiveGrid)}
+     */
+    public BoundingBox getHidingBoundingBox() {
+        Location location1 = orientation.apply(location, option.gap * (option.getWidth() + 0.5), -option.gap * 0.5, 0);;
+        Location location2 = orientation.apply(location, option.gap * (+ 0.5), option.gap * (option.getHeight() - 0.5), 0);;
+
+        return BoundingBox.of(location1, location2).expand(GridUtil.HIDE_DISTANCE);
     }
 }

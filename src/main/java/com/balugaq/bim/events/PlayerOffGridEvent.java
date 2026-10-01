@@ -8,6 +8,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jspecify.annotations.NullMarked;
 
 /**
+ * 玩家视线离开一个 Grid 后触发
+ *
  * @author balugaq
  */
 @NullMarked

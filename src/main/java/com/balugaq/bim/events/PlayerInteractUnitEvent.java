@@ -9,6 +9,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jspecify.annotations.NullMarked;
 
 /**
+ * 玩家和一个 InteractUnit 交互时触发
+ *
  * @author balugaq
  */
 @NullMarked

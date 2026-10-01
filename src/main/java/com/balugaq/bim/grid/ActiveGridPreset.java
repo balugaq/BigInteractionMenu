@@ -10,26 +10,26 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jspecify.annotations.NullMarked;
 
 /**
+ * 类似 Slimefun 的 BlockMenuPreset
+ *
  * @author balugaq
  */
 @NullMarked
-public abstract class ActiveGridOption extends GridOption {
-    public ActiveGridOption(NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width, float gap) {
+public abstract class ActiveGridPreset extends GridPreset {
+    public ActiveGridPreset(NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width, float gap) {
         super(identifier, height, width, gap);
     }
 
-    public ActiveGridOption(NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width) {
+    public ActiveGridPreset(NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width) {
         super(identifier, height, width);
     }
 
     @Override
-    public void init(int idx, InteractUnit unit) {
+    public void init(ActiveGrid active, int idx, InteractUnit unit) {
         var location = unit.location;
         var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
         var gap = getGap();
@@ -37,7 +37,7 @@ public abstract class ActiveGridOption extends GridOption {
         unit.titleDisplay = location.getWorld().spawn(o.apply(location, gap * 0.5f, -gap * 0.5f + 0.03, 0.005), TextDisplay.class);
         unit.amountDisplay = location.getWorld().spawn(o.apply(location, gap - 0.02, 0.01 - gap, 0.004), TextDisplay.class);
 
-        var stack = getItemInSlot(idx);
+        var stack = active.getItemInSlot(idx);
         unit.itemDisplay.setItemStack(stack);
         unit.itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
         unit.itemDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).leftRotation(o.getItemRotation()).build());
@@ -63,17 +63,25 @@ public abstract class ActiveGridOption extends GridOption {
     }
 
     @Override
+    public void onShow(ActiveGrid grid) {
+        super.onShow(grid);
+    }
+
+    @Override
+    public void onHide(ActiveGrid grid) {
+        super.onHide(grid);
+    }
+
+    @Override
     public void onHover(InteractUnit unit, Player player) {
         unit.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_SHOWN);
         unit.itemDisplay.setBrightness(GridUtil.MDB);
         unit.amountDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_SHOWN);
         var old = GridDataCache.watching().put(player.getUniqueId(), unit);
-        unit.grid.viewers.add(player.getUniqueId());
         if (old != null && unit != old) {
             old.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
             old.itemDisplay.setBrightness(GridUtil.KDB);
             old.amountDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
-            old.grid.viewers.remove(player.getUniqueId());
         }
     }
 
@@ -81,14 +89,8 @@ public abstract class ActiveGridOption extends GridOption {
     public void onScroll(ActiveGrid active, ScrollResult result, int delta, PlayerItemHeldEvent event) {
         if (event.getPlayer().isSneaking()) return;
 
-        switch (result) {
-            case UP -> {
-                active.scrollOffset = Math.min(active.scrollOffset + delta, (Math.max(0, entriesSize() - getWidth() * getHeight()) + getWidth() - 1) / getWidth());
-            }
-            case DOWN -> {
-                active.scrollOffset = Math.max(active.scrollOffset - delta, 0);
-            }
-        }
+        super.onScroll(active, result, delta, event);
+
         active.units.forEach((i, u) -> {
             updateDisplayItem(active, i, u);
         });
@@ -96,7 +98,7 @@ public abstract class ActiveGridOption extends GridOption {
 
     @Override
     public void updateDisplayItem(ActiveGrid active, int idx, InteractUnit u) {
-        var stack = getItemInSlot(idx + u.grid.scrollOffset * getWidth());
+        var stack = active.getItemInSlot(idx + u.grid.scrollOffset * getWidth());
         u.itemDisplay.setItemStack(stack);
         if (stack == null) {
             u.amountDisplay.text(Component.empty());
@@ -104,6 +106,4 @@ public abstract class ActiveGridOption extends GridOption {
             u.amountDisplay.text(Component.text().color(NamedTextColor.WHITE).append(Component.text(GridUtil.formatAmount(stack.getAmount()))).build());
         }
     }
-
-    public abstract @Nullable ItemStack getItemInSlot(int idx);
 }

@@ -10,6 +10,8 @@ import org.bukkit.event.player.PlayerEvent;
 import org.jspecify.annotations.NullMarked;
 
 /**
+ * 玩家使用滚轮操作 Grid 翻动时触发
+ *
  * @author balugaq
  */
 @NullMarked

@@ -3,6 +3,8 @@ package com.balugaq.bim.grid;
 import org.jspecify.annotations.NullMarked;
 
 /**
+ * 类似 Slimefun 的 MenuClickHandler，这里使用一个 DTO 存储参数
+ *
  * @author balugaq
  */
 @NullMarked

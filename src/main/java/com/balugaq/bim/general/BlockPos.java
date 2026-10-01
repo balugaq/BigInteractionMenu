@@ -8,6 +8,8 @@ import org.jspecify.annotations.NullMarked;
 import java.lang.ref.WeakReference;
 
 /**
+ * 存储纯方块的位置
+ *
  * @author balugaq
  */
 @NullMarked

@@ -6,6 +6,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jspecify.annotations.NullMarked;
 
 /**
+ * 玩家交互 InteractUnit 的交互数据
+ *
  * @author balugaq
  */
 @NullMarked

@@ -26,6 +26,9 @@ import java.util.Collection;
 public class GridUtil {
     public static final Display.Brightness MDB = new Display.Brightness(15, 15);
     public static final Display.Brightness KDB = new Display.Brightness(12, 12);
+    public static final int SHOW_DISTANCE = 10;
+    public static final int HIDE_DISTANCE = 50;
+
     /**
      * text_opacity：完全透明。0 在所有版本都可靠。
      * 注意：不要用 1~26 当"显示"——4~26 会被客户端着色器按 alpha<0.1 丢弃，
@@ -37,6 +40,20 @@ public class GridUtil {
      */
     public static final byte TEXT_OPACITY_SHOWN = (byte) 255;
 
+    /**
+     * Bukkit 的 rayTrace 扫不到 Display 实体
+     * 这个 rayTrace 是一个点+方向的形式，以空间中点到直线的距离为标准
+     * rayTrace 如图所示，左边是玩家的眼睛，右边是一些 candidates 坐标
+     * 玩家观察的不同方向（yaw, pitch）决定了 direction 方向
+     *       ·
+     *     /   ·
+     *   /      ·
+     * ○ - - - - ·
+     *   \      ·
+     *     \   ·
+     *       ·
+     *
+     */
     @Nullable
     public static <T extends Entity> T rayTraceEntity(Vector origin, Vector direction, Collection<T> candidates) {
         Vector dir = direction.clone().normalize();
@@ -62,12 +79,15 @@ public class GridUtil {
         return closest;
     }
 
-    @Nullable
-    public static InteractUnit asInteractUnit(@Nullable Entity entity) {
-        if (entity == null) return null;
-        return GridDataCache.index().get(entity);
-    }
-
+    /**
+     * 简短格式化数字，例如：
+     * 123 -> 123
+     * -123 -> -123
+     * 1456 -> 1.4K
+     * -1456 -> -1.4K
+     * 40964096 -> 40.9M
+     * -40964096 -> -40.9M
+     */
     public static String formatAmount(long amount) {
         if (amount < 0) {
             return "-" + formatAmount(-amount);
@@ -96,17 +116,20 @@ public class GridUtil {
         return formatted + units[unitIndex];
     }
 
-    public static void placeGrid(Location location, GridOption option) {
-        var active = new ActiveGrid(option);
-        Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
-        var gap = option.getGap();
+    /**
+     * 生成 InteractUnit + 背景（可选）以放置一个 Grid
+     */
+    public static void placeGrid(Location location, GridPreset option) {
         var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
+        var active = new ActiveGrid(location,  option, o);
+        var units = new Int2ObjectOpenHashMap<InteractUnit>();
+        var gap = option.getGap();
         for (int h = 0; h < option.getHeight(); h++) {
             for (int w = 0; w < option.getWidth(); w++) {
                 Location loc = o.apply(location, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
                 int i = h * option.getWidth() + w;
                 var unit = new InteractUnit(i, loc, active);
-                option.init(i, unit);
+                option.init(active, i, unit);
                 units.put(i, unit);
             }
         }
@@ -135,6 +158,9 @@ public class GridUtil {
         var textWidth = blockWidth / widthPerText * 0.625f * precision;
         var t = Math.round(blockHeight / heightPerText);
         var ht = Component.text(".".repeat(Math.round(textWidth / 4f)));
+
+        // 灰色背景，用若干个 TextDisplay 实现
+        // 因为如果只用 1 个时，可能会因为 text 过大超出 65535 字节，客户端收包会失败
         for (int h = 1; h <= t; h++) {
             var bg = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - 0.5) - heightPerText * h - 0.003, 0.001), TextDisplay.class);
             bg.setRotation(o.getYaw(), o.getPitch());
@@ -150,6 +176,7 @@ public class GridUtil {
         var s = ".\n".repeat(Math.round(blockHeight / heightPerText * precision));
         s = s.substring(0, s.length() - 1);
         var wt = Component.text(s);
+        // 白色竖条
         for (int w = 0; w <= option.getWidth(); w++) {
             var divider = location.getWorld().spawn(o.apply(location, gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
             divider.setRotation(o.getYaw(), o.getPitch());
@@ -162,6 +189,7 @@ public class GridUtil {
             active.backgrounds.add(divider);
         }
 
+        // 白色横条
         for (int h = 0; h <= option.getHeight(); h++) {
             var divider = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - h - 0.5) - 0.003, 0.003), TextDisplay.class);
             divider.setRotation(o.getYaw(), o.getPitch());
@@ -178,14 +206,7 @@ public class GridUtil {
     public static void removeGrid(BlockPos pos) {
         var active = GridDataCache.activeGrids().remove(pos);
         if (active == null) return;
-        for (var unit : active.units.values()) {
-            GridDataCache.index().remove(unit.itemDisplay);
-            GridDataCache.index().remove(unit.titleDisplay);
-            GridDataCache.index().remove(unit.amountDisplay);
-            unit.itemDisplay.remove();
-            unit.titleDisplay.remove();
-            unit.amountDisplay.remove();
-        }
+        active.option.onDestroy(active);
         for (var display : active.backgrounds) {
             display.remove();
         }
@@ -200,7 +221,6 @@ public class GridUtil {
         var u = GridDataCache.watching().remove(player.getUniqueId());
         if (u != null) {
             new PlayerOffGridEvent(player, u.grid).callEvent();
-            u.grid.viewers.remove(player.getUniqueId());
             offHover(u, player);
         }
     }
@@ -227,6 +247,6 @@ public class GridUtil {
     public static InteractUnit rayTraceUnit(Player p) {
         var result = rayTraceEntity(p.getEyeLocation().toVector(), getDirection(p.getYaw(), p.getPitch()), p.getLocation().getWorld().getNearbyEntitiesByType(ItemDisplay.class, p.getLocation(), 5));
         if (result == null) return null;
-        return asInteractUnit(result);
+        return GridDataCache.index().get(result);
     }
 }

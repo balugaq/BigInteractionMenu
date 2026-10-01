@@ -1,13 +1,12 @@
 package com.balugaq.bim;
 
 import com.balugaq.bim.grid.GridDataCache;
-import com.balugaq.bim.grid.GridOptionRegistry;
+import com.balugaq.bim.grid.GridPresetRegistry;
 import com.balugaq.bim.grid.GridTickTask;
 import com.balugaq.bim.grid.MenuListener;
 import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jspecify.annotations.NullMarked;
@@ -23,13 +22,15 @@ import org.jspecify.annotations.NullMarked;
  *  | (￣ヽ＿_ヽ_)__)
  *  ＼二つ
  *
+ * 祈祷别出 bug 喵~
+ *
  * @author balugaq
  */
 @NullMarked
 @Getter
 public final class BIMMain extends JavaPlugin {
     private static BIMMain INSTANCE;
-    private final GridOptionRegistry optionRegistry = new GridOptionRegistry();
+    private final GridPresetRegistry optionRegistry = new GridPresetRegistry();
 
     @Override
     public void onLoad() {
@@ -51,12 +52,7 @@ public final class BIMMain extends JavaPlugin {
     public void onDisable() {
         HandlerList.unregisterAll(instance());
         GridDataCache.activeGrids().values().forEach(g -> {
-            g.getUnits().values().forEach(u -> {
-                u.getItemDisplay().remove();
-                u.getTitleDisplay().remove();
-                u.getAmountDisplay().remove();
-            });
-            g.getBackgrounds().forEach(Entity::remove);
+            g.getOption().onDestroy(g);
         });
         GridDataCache.activeGrids().clear();
     }
@@ -66,6 +62,7 @@ public final class BIMMain extends JavaPlugin {
 
         libraryManager.addMavenCentral();
 
+// 保留在这里防止我忘了怎么加依赖
 //        libraryManager.addRepository(repo);
 //        Library byteBuddy = Library.builder()
 //                .groupId("net{}bytebuddy")
