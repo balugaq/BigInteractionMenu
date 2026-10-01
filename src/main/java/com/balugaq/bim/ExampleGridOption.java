@@ -16,13 +16,14 @@ import org.bukkit.inventory.ItemStack;
 public class ExampleGridOption extends GridOption {
     static ExampleGridOption instance = new ExampleGridOption();
 
-    // debug-adjustable via /bim w|h|gap
+    // debug-adjustable via /bim w|h|gap|facing
     int debugWidth = 9;
     int debugHeight = 9;
     float debugGap = 0.12f;
+    GridOrientation debugOrientation = GridOrientation.XY;
 
     public ExampleGridOption() {
-        super("example", 9, 9, 0.12f);
+        super("example", 9, 9, 0.12f, GridOrientation.XY);
     }
 
     public void load() {
@@ -44,6 +45,11 @@ public class ExampleGridOption extends GridOption {
         return debugGap;
     }
 
+    @Override
+    public GridOrientation getOrientation() {
+        return debugOrientation;
+    }
+
     public void setDebugWidth(int width) {
         this.debugWidth = Math.max(1, width);
     }
@@ -56,24 +62,29 @@ public class ExampleGridOption extends GridOption {
         this.debugGap = Math.max(0.01f, gap);
     }
 
+    public void setDebugOrientation(GridOrientation orientation) {
+        this.debugOrientation = orientation;
+    }
+
     @Override
     public void initialize(int idx, InteractUnit unit) {
         var location = unit.location;
+        var o = getOrientation();
         var gap = getGap();
-        unit.itemDisplay = location.getWorld().spawn(location.clone().add(gap * 0.5f, -gap * 0.5f, 0), ItemDisplay.class);
-        unit.titleDisplay = location.getWorld().spawn(location.clone().add(0 + gap, 0.03 - gap, 0.1), TextDisplay.class);
-        unit.amountDisplay = location.getWorld().spawn(location.clone().add(-0.02 + gap, 0.01 - gap, 0.004), TextDisplay.class);
+        unit.itemDisplay = location.getWorld().spawn(o.apply(location, gap * 0.5f, -gap * 0.5f, 0), ItemDisplay.class);
+        unit.titleDisplay = location.getWorld().spawn(o.apply(location, gap, 0.03 - gap, 0.1), TextDisplay.class);
+        unit.amountDisplay = location.getWorld().spawn(o.apply(location, gap - 0.02, 0.01 - gap, 0.004), TextDisplay.class);
 
         var stack = new ItemStack(Material.IRON_INGOT, idx + 1);
         unit.itemDisplay.setItemStack(stack);
         unit.itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
-        unit.itemDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).leftRotation(0f, 1f, 0f, 0f).build());
+        unit.itemDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).leftRotation(o.getItemRotation()).build());
         unit.itemDisplay.setBrightness(Util.KDB);
         unit.titleDisplay.text(stack.effectiveName());
         unit.titleDisplay.setAlignment(TextDisplay.TextAlignment.CENTER);
         unit.titleDisplay.setDefaultBackground(false);
         unit.titleDisplay.setBackgroundColor(Color.fromARGB(0));
-        unit.titleDisplay.setBillboard(Display.Billboard.VERTICAL);
+        unit.titleDisplay.setBillboard(o.isHorizontal() ? Display.Billboard.CENTER : Display.Billboard.VERTICAL);
         unit.titleDisplay.setBrightness(Util.MDB);
 //        unit.titleDisplay.setTextOpacity((byte) 0);
         unit.titleDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).build());
@@ -82,7 +93,7 @@ public class ExampleGridOption extends GridOption {
         unit.amountDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).build());
         unit.amountDisplay.setDefaultBackground(false);
         unit.amountDisplay.setBackgroundColor(Color.fromARGB(0));
-        unit.amountDisplay.setBillboard(Display.Billboard.VERTICAL);
+        unit.amountDisplay.setBillboard(o.isHorizontal() ? Display.Billboard.CENTER : Display.Billboard.VERTICAL);
         unit.amountDisplay.setBrightness(Util.MDB);
     }
 

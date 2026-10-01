@@ -12,7 +12,7 @@ import java.util.Locale;
 import java.util.Set;
 
 public class BIMCommandExecutor implements TabExecutor {
-    private static final Set<String> SUB_COMMANDS = Set.of("w", "h", "gap", "show", "reset");
+    private static final Set<String> SUB_COMMANDS = Set.of("w", "h", "gap", "facing", "show", "reset");
 
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
@@ -54,14 +54,32 @@ public class BIMCommandExecutor implements TabExecutor {
                 player.sendMessage("Gap set to " + option.getGap());
                 place(player, pos);
             }
+            case "facing" -> {
+                if (args.length < 2) {
+                    player.sendMessage("Usage: /bim facing <" + String.join("|", names()) + "> (current: " + option.getOrientation() + ")");
+                    return true;
+                }
+                GridOrientation o;
+                try {
+                    o = GridOrientation.valueOf(args[1].toUpperCase(Locale.ROOT));
+                } catch (IllegalArgumentException e) {
+                    player.sendMessage("Unknown orientation. Available: " + String.join(", ", names()));
+                    return true;
+                }
+                option.setDebugOrientation(o);
+                player.sendMessage("Orientation set to " + o);
+                place(player, pos);
+            }
             case "show" -> player.sendMessage("width=" + option.getWidth()
                     + ", height=" + option.getHeight()
-                    + ", gap=" + option.getGap());
+                    + ", gap=" + option.getGap()
+                    + ", facing=" + option.getOrientation());
             case "reset" -> {
                 option.setDebugWidth(9);
                 option.setDebugHeight(9);
                 option.setDebugGap(0.12f);
-                player.sendMessage("Reset to width=9, height=9, gap=0.12");
+                option.setDebugOrientation(GridOrientation.XY);
+                player.sendMessage("Reset to width=9, height=9, gap=0.12, facing=XY");
                 place(player, pos);
             }
             default -> player.sendMessage("Unknown sub-command. Available: " + String.join(", ", SUB_COMMANDS));
@@ -107,11 +125,20 @@ public class BIMCommandExecutor implements TabExecutor {
         }
     }
 
+    private static List<String> names() {
+        return java.util.Arrays.stream(GridOrientation.values()).map(Enum::name).toList();
+    }
+
     @Override
     public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String label, @NotNull String @NotNull [] args) {
         if (args.length == 1) {
             return SUB_COMMANDS.stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase(Locale.ROOT)))
+                    .toList();
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("facing")) {
+            return names().stream()
+                    .filter(s -> s.toLowerCase(Locale.ROOT).startsWith(args[1].toLowerCase(Locale.ROOT)))
                     .toList();
         }
         return List.of();

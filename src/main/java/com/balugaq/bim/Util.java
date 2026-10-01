@@ -93,16 +93,17 @@ public class Util {
     }
 
     public static int pixelToLineWidth(float pixel) {
-        return Math.round(pixel * 8.0f);
+        return Math.round(pixel * 40.0f / 4.8f);
     }
 
     public static void placeGrid(Location location, GridOption option) {
         var active = new ActiveGrid(option);
         Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
         var gap = option.getGap();
+        var o = option.getOrientation();
         for (int h = 0; h < option.getHeight(); h++) {
             for (int w = 0; w < option.getWidth(); w++) {
-                Location loc = location.clone().add(gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
+                Location loc = o.apply(location, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
                 int i = h * option.getWidth() + w;
                 var unit = new InteractUnit(i, loc, active);
                 option.initialize(i, unit);
@@ -117,7 +118,8 @@ public class Util {
         active.units = units;
         GridDataCache.activeGrids.put(BlockPos.from(location), active);
         if (option.defaultBackground()) {
-            var bigBackground = location.getWorld().spawn(location.clone().add(gap * (option.getWidth() / 2f + 0.5), -gap * 0.5, 0.001), TextDisplay.class);
+            var bigBackground = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), -gap * 0.5, 0.001), TextDisplay.class);
+            bigBackground.setRotation(o.getYaw(), o.getPitch());
             var scale = 0.2f;
             var blockWidth = gap * (option.getWidth() + 1);
             var blockPerText = 1f / 16f * 4f * scale;
@@ -133,7 +135,8 @@ public class Util {
             active.background.add(bigBackground);
 
             for (int w = 0; w <= option.getWidth(); w++) {
-                var divider = location.getWorld().spawn(location.clone().add(gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
+                var divider = location.getWorld().spawn(o.apply(location, gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
+                divider.setRotation(o.getYaw(), o.getPitch());
                 divider.text(Component.text("你".repeat(Math.round(blockHeight / blockPerText * 2 * precision))));
                 divider.setTextOpacity((byte) 0);
                 divider.setTransformation(TransformationBuilder.create().scale(scale / 2 / precision).build());
@@ -144,7 +147,8 @@ public class Util {
             }
 
             for (int h = 0; h <= option.getHeight(); h++) {
-                var divider = location.getWorld().spawn(location.clone().add(gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - h - 0.5), 0.003), TextDisplay.class);
+                var divider = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - h - 0.5), 0.003), TextDisplay.class);
+                divider.setRotation(o.getYaw(), o.getPitch());
                 divider.text(Component.text("你".repeat(Math.round(blockWidth / blockPerText * 2 * precision))));
                 divider.setTextOpacity((byte) 0);
                 divider.setTransformation(TransformationBuilder.create().scale(scale / 2 / precision).build());

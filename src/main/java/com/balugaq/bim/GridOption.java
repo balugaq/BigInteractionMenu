@@ -12,15 +12,18 @@ public abstract class GridOption {
     @Range(from = 1, to = Integer.MAX_VALUE) int height;
     @Range(from = 1, to = Integer.MAX_VALUE) int width;
     float gap;
+    GridOrientation orientation;
 
     public GridOption(String identifier,
                       @Range(from = 1, to = Integer.MAX_VALUE) int height,
                       @Range(from = 1, to = Integer.MAX_VALUE) int width,
-                      float gap) {
+                      float gap,
+                      GridOrientation orientation) {
         this.identifier = identifier;
         this.height = height;
         this.width = width;
         this.gap = gap;
+        this.orientation = orientation;
     }
     public abstract void initialize(int idx, InteractUnit unit);
     public abstract void interact(InteractUnit unit, PlayerInteractEvent event);
