@@ -1,5 +1,5 @@
 [versions]
-shadow = "9.3.2"
+shadow = "9.6.1"
 paper = "1.21.11-R0.1-SNAPSHOT"
 lombok = "1.18.46"
 junit = "5.11.4"
