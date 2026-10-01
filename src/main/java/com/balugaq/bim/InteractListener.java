@@ -7,7 +7,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.inventory.EquipmentSlot;
 
 public class InteractListener implements Listener {
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(ignoreCancelled = false) // Allow listen to click air
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
         var unit = Util.getUnit(event.getPlayer(), event.getPlayer().getEyeLocation());
