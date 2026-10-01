@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2026 balugaq
+ *
+ * This software is released under the MIT License.
+ * https://opensource.org/licenses/MIT
+ */
+
 package com.balugaq.bim.general;
 
 import io.papermc.paper.math.BlockPosition;

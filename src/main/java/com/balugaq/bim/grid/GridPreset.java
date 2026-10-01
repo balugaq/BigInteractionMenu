@@ -1,3 +1,10 @@
+/*
+ * Copyright (c) 2026 balugaq
+ *
+ * This software is released under the MIT License.
+ * https://opensource.org/licenses/MIT
+ */
+
 package com.balugaq.bim.grid;
 
 import lombok.Data;
@@ -21,8 +28,8 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 public abstract class GridPreset {
     public static final float DEFAULT_GAP = 0.12f;
     final NamespacedKey identifier;
-    @Range(from = 1, to = Integer.MAX_VALUE) int height;
-    @Range(from = 1, to = Integer.MAX_VALUE) int width;
+    final @Range(from = 1, to = Integer.MAX_VALUE) int height;
+    final @Range(from = 1, to = Integer.MAX_VALUE) int width;
     float gap;
 
     public GridPreset(NamespacedKey identifier,
