@@ -4,21 +4,22 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Location;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.util.Vector;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
-import java.util.HashSet;
 
-public class Util {
-    public static final NamespacedKey IDX_KEY = new NamespacedKey(MyPluginMain.instance(), "idx");
-    public static final NamespacedKey OPTION_ID_KEY = new NamespacedKey(MyPluginMain.instance(), "option_identifier");
+/**
+ * @author balugaq
+ */
+@NullMarked
+public class GridUtil {
     public static final Display.Brightness MDB = new Display.Brightness(15, 15);
     public static final Display.Brightness KDB = new Display.Brightness(12, 12);
     /**
@@ -33,7 +34,7 @@ public class Util {
     public static final byte TEXT_OPACITY_SHOWN = (byte) 255;
 
     @Nullable
-    public static <T extends Entity> T rayEntity(Vector origin, Vector direction, Collection<T> candidates) {
+    public static <T extends Entity> T rayTraceEntity(Vector origin, Vector direction, Collection<T> candidates) {
         Vector dir = direction.clone().normalize();
         T closest = null;
         double minDistance = Double.MAX_VALUE;
@@ -48,24 +49,13 @@ public class Util {
             // 点到射线的垂直距离
             double distance = toCandidate.crossProduct(dir).length();
 
-            if (distance < 0.2 && distance < minDistance) {
+            if (distance < 0.12 && distance < minDistance) {
                 minDistance = distance;
                 closest = candidate;
             }
         }
 
         return closest;
-    }
-
-    public static LookResult lookResult(Player p, Location interactLocation) {
-        var result = rayEntity(interactLocation.toVector(), getDirection(p.getYaw(), p.getPitch()), p.getLocation().getWorld().getNearbyEntitiesByType(ItemDisplay.class, p.getLocation(), 5));
-        if (result == null) return LookResult.fail();
-        var unit = asInteractUnit(result);
-        if (unit != null) {
-            return LookResult.success(unit);
-        } else {
-            return LookResult.fail();
-        }
     }
 
     @Nullable
@@ -102,15 +92,11 @@ public class Util {
         return formatted + units[unitIndex];
     }
 
-    public static int pixelToLineWidth(float pixel) {
-        return Math.round(pixel * 9.0f);
-    }
-
     public static void placeGrid(Location location, GridOption option) {
         var active = new ActiveGrid(option);
         Int2ObjectOpenHashMap<InteractUnit> units = new Int2ObjectOpenHashMap<>();
         var gap = option.getGap();
-        var o = option.getOrientation();
+        var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
         for (int h = 0; h < option.getHeight(); h++) {
             for (int w = 0; w < option.getWidth(); w++) {
                 Location loc = o.apply(location, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
@@ -128,45 +114,60 @@ public class Util {
         active.units = units;
         GridDataCache.activeGrids.put(BlockPos.from(location), active);
         if (option.defaultBackground()) {
-            var bigBackground = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), -gap * 0.5, 0.001), TextDisplay.class);
-            bigBackground.setRotation(o.getYaw(), o.getPitch());
-            var scale = 0.2f;
-            var blockWidth = gap * (option.getWidth() + 1);
-            var blockPerText = 1f / 16f * 4f * scale;
-            var blockHeight = gap * option.getHeight();
-            var precision = 4f;
-            var c = Component.text("你".repeat(Math.round((blockWidth / blockPerText) * (blockHeight / blockPerText) * 4f * precision)));
-            bigBackground.text(c);
-            bigBackground.setTextOpacity((byte) 0);
-            bigBackground.setTransformation(TransformationBuilder.create().scale(scale / precision).build());
-            bigBackground.setBackgroundColor(Color.fromRGB(0x8B8B8B));
-            bigBackground.setBrightness(MDB);
-            bigBackground.setLineWidth(pixelToLineWidth(blockWidth / blockPerText * precision) - 2);
-            active.background.add(bigBackground);
+            addDefaultBackground(active, location);
+        }
+    }
 
-            for (int w = 0; w <= option.getWidth(); w++) {
-                var divider = location.getWorld().spawn(o.apply(location, gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
-                divider.setRotation(o.getYaw(), o.getPitch());
-                divider.text(Component.text("你".repeat(Math.round(blockHeight / blockPerText * 2 * precision))));
-                divider.setTextOpacity((byte) 0);
-                divider.setTransformation(TransformationBuilder.create().scale(scale / 2 / precision).build());
-                divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
-                divider.setBrightness(MDB);
-                divider.setLineWidth(1);
-                active.background.add(divider);
-            }
+    private static void addDefaultBackground(ActiveGrid active, Location location) {
+        var option = active.option;
+        var scale = 0.1f; // 物体大小
+        var precision = 2f; // 精确度，数值越大，像素显示的越精确（只改变字数，不会影响性能，但会影响发包大小）
+        var heightPerText = 1f / 16f * 4f * scale;
+        var widthPerText = (1f / 24 / 16 - 0.001f) * 10 * scale; // 24 个 . 在 scale 0.1 下对应 1/16 格
+        var gap = option.gap;
+        var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
+        var blockWidth = (gap + 1f / 320f) * option.getWidth();
+        var blockHeight = gap * option.getHeight();
+        var textWidth = blockWidth / widthPerText * 0.625f * precision;
+        var t = Math.round(blockHeight / heightPerText);
+        var ht = Component.text(".".repeat(Math.round(textWidth / 4f)));
+        for (int h = 1; h <= t; h++) {
+            var bg = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - 0.5) - heightPerText * h - 0.003, 0.001), TextDisplay.class);
+            bg.setRotation(o.getYaw(), o.getPitch());
+            bg.text(ht);
+            bg.setTextOpacity((byte) 0);
+            bg.setTransformation(TransformationBuilder.create().scale(scale * 2f / precision).build());
+            bg.setBackgroundColor(Color.fromRGB(0x8B8B8B));
+            bg.setBrightness(MDB);
+            bg.setLineWidth(999999);
+            active.background.add(bg);
+        }
 
-            for (int h = 0; h <= option.getHeight(); h++) {
-                var divider = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - h - 0.5), 0.003), TextDisplay.class);
-                divider.setRotation(o.getYaw(), o.getPitch());
-                divider.text(Component.text("你".repeat(Math.round(blockWidth / blockPerText * 2 * precision))));
-                divider.setTextOpacity((byte) 0);
-                divider.setTransformation(TransformationBuilder.create().scale(scale / 2 / precision).build());
-                divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
-                divider.setBrightness(MDB);
-                divider.setLineWidth(999999);
-                active.background.add(divider);
-            }
+        var s = ".\n".repeat(Math.round(blockHeight / heightPerText * precision));
+        s = s.substring(0, s.length() - 1);
+        var wt = Component.text(s);
+        for (int w = 0; w <= option.getWidth(); w++) {
+            var divider = location.getWorld().spawn(o.apply(location, gap * (w + 0.5), -gap * 0.5, 0.002), TextDisplay.class);
+            divider.setRotation(o.getYaw(), o.getPitch());
+            divider.text(wt);
+            divider.setTextOpacity((byte) 0);
+            divider.setTransformation(TransformationBuilder.create().scale(scale / precision).build());
+            divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
+            divider.setBrightness(MDB);
+            divider.setLineWidth(1);
+            active.background.add(divider);
+        }
+
+        for (int h = 0; h <= option.getHeight(); h++) {
+            var divider = location.getWorld().spawn(o.apply(location, gap * (option.getWidth() / 2f + 0.5), gap * (option.getHeight() - h - 0.5) - 0.003, 0.003), TextDisplay.class);
+            divider.setRotation(o.getYaw(), o.getPitch());
+            divider.text(Component.text(".".repeat(Math.round(textWidth * 2f))));
+            divider.setTextOpacity((byte) 0);
+            divider.setTransformation(TransformationBuilder.create().scale(scale / 4f / precision).build());
+            divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
+            divider.setBrightness(MDB);
+            divider.setLineWidth(999999);
+            active.background.add(divider);
         }
     }
 
@@ -185,10 +186,10 @@ public class Util {
             display.remove();
         }
         GridDataCache.watching.values().removeIf(pair ->
-                pair.itemDisplay.isDead() || !pair.itemDisplay.isValid());
+            pair.itemDisplay.isDead() || !pair.itemDisplay.isValid());
     }
 
-    public static Vector getDirection(float yaw, float pitch) {
+    private static Vector getDirection(float yaw, float pitch) {
         double yawRad = Math.toRadians(yaw);
         double pitchRad = Math.toRadians(pitch);
 
@@ -200,14 +201,9 @@ public class Util {
     }
 
     @Nullable
-    public static InteractUnit getUnit(Player player, Location interactLocation) {
-        var result = Util.lookResult(player, interactLocation);
-        if (!result.success()) return null;
-        return result.unit();
-    }
-
-    public static <T> T either(@Nullable T t1, T t2) {
-        if (t1 == null) return t2;
-        return t1;
+    public static InteractUnit rayTraceUnit(Player p) {
+        var result = rayTraceEntity(p.getEyeLocation().toVector(), getDirection(p.getYaw(), p.getPitch()), p.getLocation().getWorld().getNearbyEntitiesByType(ItemDisplay.class, p.getLocation(), 5));
+        if (result == null) return null;
+        return asInteractUnit(result);
     }
 }

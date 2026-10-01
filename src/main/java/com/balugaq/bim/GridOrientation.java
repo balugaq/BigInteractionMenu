@@ -4,6 +4,7 @@ import lombok.Getter;
 import org.bukkit.Location;
 import org.bukkit.util.Vector;
 import org.joml.Quaternionf;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * 网格的平面与朝向。
@@ -24,7 +25,10 @@ import org.joml.Quaternionf;
  *     <li>{@link #YZ}：竖直平面，观察者在 +X / 东侧；</li>
  *     <li>{@link #YZ_REVERSED}：竖直平面，观察者在 -X / 西侧。</li>
  * </ul>
+ *
+ * @author balugaq
  */
+@NullMarked
 @Getter
 public enum GridOrientation {
     XY(new Vector(1, 0, 0), new Vector(0, 1, 0), new Vector(0, 0, 1),
@@ -87,5 +91,61 @@ public enum GridOrientation {
 
     public boolean isHorizontal() {
         return this == XZ || this == XZ_REVERSED;
+    }
+
+    /**
+     * 根据 yaw/pitch 匹配最接近的合法朝向。
+     * <p>
+     * yaw 会先归一化到 [0, 360)，pitch 归一化到 [-90, 90]。
+     * 采用球面角距离（先比较 pitch，再比较 yaw 的环形差）挑选最优项，
+     * 找不到精确匹配时返回最接近的一个，而不是 null。
+     *
+     * @param yaw   水平角（度，任意实数，自动归一化）
+     * @param pitch 俯仰角（度，任意实数，自动归一化）
+     * @return 最接近的 {@link GridOrientation}
+     */
+    public static GridOrientation fromYawPitch(float yaw, float pitch) {
+        float y = normalizeYaw(yaw);
+        float p = normalizePitch(pitch);
+
+        GridOrientation best = XY;
+        float bestScore = Float.MAX_VALUE;
+        for (GridOrientation o : values()) {
+            // pitch 差（先决条件，权重放大，避免 pitch 差很大却因 yaw 接近而误选）
+            float dPitch = Math.abs(p - o.pitch);
+            // yaw 环形差，范围 [0, 180]
+            float dYaw = yawDistance(y, o.yaw);
+            // pitch 差异是主要判据，yaw 作为次要判据
+            float score = dPitch * 4f + dYaw;
+            if (score < bestScore) {
+                bestScore = score;
+                best = o;
+            }
+        }
+        return best;
+    }
+
+    /** 归一化 yaw 到 [0, 360)。 */
+    private static float normalizeYaw(float yaw) {
+        float y = yaw % 360f;
+        if (y < 0f) y += 360f;
+        return y;
+    }
+
+    /** 归一化 pitch 到 [-90, 90]。 */
+    private static float normalizePitch(float pitch) {
+        // 超出范围说明翻转了，映射回等价的最小俯仰
+        float p = pitch % 360f;
+        if (p < -180f) p += 360f;
+        if (p > 180f) p -= 360f;
+        if (p > 90f) p = 180f - p;
+        if (p < -90f) p = -180f - p;
+        return p;
+    }
+
+    /** 两个 yaw 之间的最短环形距离，结果范围 [0, 180]。 */
+    private static float yawDistance(float a, float b) {
+        float d = Math.abs(a - b) % 360f;
+        return d > 180f ? 360f - d : d;
     }
 }

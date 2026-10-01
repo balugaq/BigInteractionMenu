@@ -3,11 +3,11 @@ package com.balugaq.bim;
 import lombok.Getter;
 import net.byteflux.libby.BukkitLibraryManager;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * 　 　 　 　 　 　 　 　 ／＞　　フ
@@ -19,10 +19,13 @@ import org.bukkit.plugin.java.JavaPlugin;
  * 　／￣|　　 |　|　|　|　|
  *  | (￣ヽ＿_ヽ_)__)
  *  ＼二つ
+ *
+ * @author balugaq
  */
+@NullMarked
 @Getter
-public final class MyPluginMain extends JavaPlugin {
-    private static MyPluginMain INSTANCE;
+public final class BIMMain extends JavaPlugin {
+    private static BIMMain INSTANCE;
     private final GridOptionRegistry optionRegistry = new GridOptionRegistry();
 
     @Override
@@ -31,32 +34,29 @@ public final class MyPluginMain extends JavaPlugin {
         setupLibraries();
     }
 
-    public static MyPluginMain instance() {
+    public static BIMMain instance() {
         return INSTANCE;
     }
 
     @Override
     public void onEnable() {
-        // Plugin start logic
-        Bukkit.getPluginManager().registerEvents(new InteractListener(), this);
+        Bukkit.getPluginManager().registerEvents(new MenuListener(), this);
         Bukkit.getScheduler().runTaskTimer(instance(), this::tickGrid, 0, 1);
-        ExampleGridOption.instance.load();
-        getCommand("bim").setExecutor(new BIMCommandExecutor());
     }
 
     public void tickGrid() {
         for (Player p : Bukkit.getOnlinePlayers()) {
-            var unit = Util.getUnit(p, p.getEyeLocation());
+            var unit = GridUtil.rayTraceUnit(p);
             if (unit == null) {
                 var old = GridDataCache.watching.get(p);
                 if (old != null) {
-                    old.titleDisplay.setTextOpacity(Util.TEXT_OPACITY_HIDDEN);
-                    old.itemDisplay.setBrightness(Util.KDB);
+                    old.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
+                    old.itemDisplay.setBrightness(GridUtil.KDB);
                 }
                 continue;
             }
             var grid = unit.grid;
-            grid.option.hover(unit, p);
+            grid.option.onHover(unit, p);
             grid.waitTicks += 1;
             if (grid.waitTicks % grid.option.tickInterval() == 0) {
                 grid.option.tick();
@@ -66,7 +66,6 @@ public final class MyPluginMain extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
         HandlerList.unregisterAll(instance());
         GridDataCache.activeGrids.values().forEach(g -> {
             g.units.values().forEach(u -> {

@@ -1,34 +1,53 @@
 package com.balugaq.bim;
 
 import lombok.Data;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.jetbrains.annotations.Range;
+import org.jspecify.annotations.NullMarked;
 
+/**
+ * @author balugaq
+ */
+@NullMarked
 @Data
 public abstract class GridOption {
-    final String identifier;
+    public static final float DEFAULT_GAP = 0.12f;
+    final NamespacedKey identifier;
     @Range(from = 1, to = Integer.MAX_VALUE) int height;
     @Range(from = 1, to = Integer.MAX_VALUE) int width;
     float gap;
-    GridOrientation orientation;
 
-    public GridOption(String identifier,
+    public GridOption(NamespacedKey identifier,
+                      @Range(from = 1, to = Integer.MAX_VALUE) int height,
+                      @Range(from = 1, to = Integer.MAX_VALUE) int width) {
+        this(identifier, height, width, DEFAULT_GAP);
+    }
+
+    public GridOption(NamespacedKey identifier,
                       @Range(from = 1, to = Integer.MAX_VALUE) int height,
                       @Range(from = 1, to = Integer.MAX_VALUE) int width,
-                      float gap,
-                      GridOrientation orientation) {
+                      float gap) {
         this.identifier = identifier;
         this.height = height;
         this.width = width;
         this.gap = gap;
-        this.orientation = orientation;
+        GridOptionRegistry.registerOption(this);
     }
+
+    public void place(Location location) {
+        GridUtil.placeGrid(location, this);
+    }
+
     public abstract void initialize(int idx, InteractUnit unit);
-    public abstract void interact(InteractUnit unit, PlayerInteractEvent event);
-    public abstract void hover(InteractUnit unit, Player player);
-    public abstract void scroll(ActiveGrid grid, ScrollResult result, PlayerItemHeldEvent event);
+
+    public abstract void onHover(InteractUnit unit, Player player);
+
+    public abstract void onScroll(ActiveGrid active, ScrollResult result, int delta, PlayerItemHeldEvent event);
+
+    public abstract void updateDisplayItem(ActiveGrid active, int idx, InteractUnit u);
     public abstract void tick();
     public abstract int tickInterval(); // ticks
     public abstract int entriesSize();

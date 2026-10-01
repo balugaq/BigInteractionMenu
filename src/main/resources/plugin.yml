@@ -1,17 +1,6 @@
 name: '${name}'
 version: '${version}'
-main: com.balugaq.bim.MyPluginMain
+main: com.balugaq.bim.BIMMain
 api-version: '1.20'
-depend: []
-softdepend: []
-loadBefore: []
 authors: [balugaq]
 description: ""
-commands:
-  bim:
-    description: /bim [w|h|gap|facing|show|reset]
-    usage: /bim [w <width> | h <height> | gap <gap> | facing <XY|XY_REVERSED|XZ|XZ_REVERSED|YZ|YZ_REVERSED> | show | reset]
-permissions:
-  bim:
-    description: Big Interaction Menu's main command
-    default: op

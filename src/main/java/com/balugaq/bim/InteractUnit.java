@@ -5,7 +5,12 @@ import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.TextDisplay;
+import org.jspecify.annotations.NullMarked;
 
+/**
+ * @author balugaq
+ */
+@NullMarked
 @Data
 @RequiredArgsConstructor
 public class InteractUnit {

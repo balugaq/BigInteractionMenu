@@ -5,10 +5,14 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4f;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
+import org.jspecify.annotations.NullMarked;
 
 /**
  * {@link Transformation} 的链式构建器。
+ *
+ * @author balugaq
  */
+@NullMarked
 public class TransformationBuilder {
 
     private Vector3f translation = new Vector3f(0f, 0f, 0f);
