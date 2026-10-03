@@ -7,7 +7,7 @@
 
 package com.balugaq.bim.grid;
 
-import com.balugaq.bim.BIMMain;
+import lombok.Getter;
 import org.bukkit.NamespacedKey;
 import org.jspecify.annotations.NullMarked;
 
@@ -18,13 +18,16 @@ import java.util.Map;
  * @author balugaq
  */
 @NullMarked
+@Getter
 public class GridPresetRegistry {
+    @Getter
+    private static final GridPresetRegistry optionRegistry = new GridPresetRegistry();
     private final Map<NamespacedKey, GridPreset> presetRegistry = new HashMap<>();
     public static void registerOption(GridPreset option) {
-        BIMMain.instance().getOptionRegistry().presetRegistry.put(option.getIdentifier(), option);
+        optionRegistry.presetRegistry.put(option.getIdentifier(), option);
     }
 
     public static GridPreset getOption(NamespacedKey id) {
-        return BIMMain.instance().getOptionRegistry().presetRegistry.get(id);
+        return optionRegistry.presetRegistry.get(id);
     }
 }

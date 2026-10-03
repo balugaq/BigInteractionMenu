@@ -7,8 +7,10 @@
 
 package com.balugaq.bim.grid;
 
+import com.balugaq.bim.BIMLoader;
 import com.balugaq.bim.events.PlayerInteractUnitEvent;
 import com.balugaq.bim.events.PlayerScrollGridEvent;
+import lombok.RequiredArgsConstructor;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -17,17 +19,25 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.plugin.Plugin;
 import org.jspecify.annotations.NullMarked;
 
 /**
  * @author balugaq
  */
+@RequiredArgsConstructor
 @NullMarked
 public class MenuListener implements Listener {
+    private final Plugin plugin;
+
+    public BIMLoader getLoader() {
+        return BIMLoader.get(plugin);
+    }
+
     @EventHandler(ignoreCancelled = false) // Allow listen to click air
     public void onInteract(PlayerInteractEvent event) {
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
-        var unit = GridUtil.rayTraceUnit(event.getPlayer());
+        var unit = getLoader().getGridUtil().rayTraceUnit(event.getPlayer());
         if (unit == null) return;
         var dto = new ClickDTO(event, unit);
         if (!new PlayerInteractUnitEvent(dto).callEvent()) return;
@@ -36,7 +46,7 @@ public class MenuListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onScroll(PlayerItemHeldEvent event) {
-        var unit = GridUtil.rayTraceUnit(event.getPlayer());
+        var unit = getLoader().getGridUtil().rayTraceUnit(event.getPlayer());
         if (unit == null) return;
 
         int p = event.getPreviousSlot();
@@ -55,11 +65,11 @@ public class MenuListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void offGrid(PlayerDeathEvent event) {
-        GridUtil.offGrid(event.getPlayer());
+        getLoader().getGridUtil().offGrid(event.getPlayer());
     }
 
     @EventHandler
     public void offGrid(PlayerQuitEvent event) {
-        GridUtil.offGrid(event.getPlayer());
+        getLoader().getGridUtil().offGrid(event.getPlayer());
     }
 }

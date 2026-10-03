@@ -7,6 +7,7 @@
 
 package com.balugaq.bim.grid;
 
+import com.balugaq.bim.BIMLoader;
 import com.balugaq.bim.general.TransformationBuilder;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.Plugin;
 import org.jetbrains.annotations.Range;
 import org.jspecify.annotations.NullMarked;
 
@@ -28,12 +30,12 @@ import org.jspecify.annotations.NullMarked;
  */
 @NullMarked
 public abstract class ActiveGridPreset extends GridPreset {
-    public ActiveGridPreset(NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width, float gap) {
-        super(identifier, height, width, gap);
+    public ActiveGridPreset(Plugin plugin, NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width, float gap) {
+        super(plugin, identifier, height, width, gap);
     }
 
-    public ActiveGridPreset(NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width) {
-        super(identifier, height, width);
+    public ActiveGridPreset(Plugin plugin, NamespacedKey identifier, @Range(from = 1, to = Integer.MAX_VALUE) int height, @Range(from = 1, to = Integer.MAX_VALUE) int width) {
+        super(plugin, identifier, height, width);
     }
 
     @Override
@@ -83,12 +85,16 @@ public abstract class ActiveGridPreset extends GridPreset {
         super.onHide(grid);
     }
 
+    public BIMLoader getLoader() {
+        return BIMLoader.get(plugin);
+    }
+
     @Override
     public void onHover(InteractUnit unit, Player player) {
         unit.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_SHOWN);
         unit.itemDisplay.setBrightness(GridUtil.MDB);
         unit.amountDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_SHOWN);
-        var old = GridDataCache.watching().put(player.getUniqueId(), unit);
+        var old = getLoader().getCache().watching().put(player.getUniqueId(), unit);
         if (old != null && unit != old) {
             old.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
             old.itemDisplay.setBrightness(GridUtil.KDB);

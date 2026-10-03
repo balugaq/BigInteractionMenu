@@ -7,13 +7,14 @@
 
 package com.balugaq.bim.grid;
 
+import com.balugaq.bim.BIMLoader;
 import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.block.Orientation;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Range;
 import org.jspecify.annotations.NullMarked;
@@ -29,21 +30,25 @@ import javax.annotation.OverridingMethodsMustInvokeSuper;
 @Data
 public abstract class GridPreset {
     public static final float DEFAULT_GAP = 0.12f;
+    final Plugin plugin;
     final NamespacedKey identifier;
     final @Range(from = 1, to = Integer.MAX_VALUE) int height;
     final @Range(from = 1, to = Integer.MAX_VALUE) int width;
     float gap;
 
-    public GridPreset(NamespacedKey identifier,
+    public GridPreset(Plugin plugin,
+                      NamespacedKey identifier,
                       @Range(from = 1, to = Integer.MAX_VALUE) int height,
                       @Range(from = 1, to = Integer.MAX_VALUE) int width) {
-        this(identifier, height, width, DEFAULT_GAP);
+        this(plugin, identifier, height, width, DEFAULT_GAP);
     }
 
-    public GridPreset(NamespacedKey identifier,
+    public GridPreset(Plugin plugin,
+                      NamespacedKey identifier,
                       @Range(from = 1, to = Integer.MAX_VALUE) int height,
                       @Range(from = 1, to = Integer.MAX_VALUE) int width,
                       float gap) {
+        this.plugin = plugin;
         this.identifier = identifier;
         this.height = height;
         this.width = width;
@@ -52,7 +57,7 @@ public abstract class GridPreset {
     }
 
     public ActiveGrid place(Location location) {
-        return GridUtil.placeGrid(location, this);
+        return BIMLoader.get(plugin).getGridUtil().placeGrid(location, this);
     }
 
     /**

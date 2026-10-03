@@ -7,6 +7,7 @@
 
 package com.balugaq.bim.grid;
 
+import com.balugaq.bim.BIMLoader;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -114,6 +115,6 @@ public class ActiveGrid {
     }
 
     public void tag(Entity e) {
-        e.getPersistentDataContainer().set(GridUtil.TAG, PersistentDataType.STRING, getTag());
+        e.getPersistentDataContainer().set(BIMLoader.get(option.plugin).getGridUtil().TAG, PersistentDataType.STRING, getTag());
     }
 }
