@@ -126,7 +126,7 @@ public class GridUtil {
     /**
      * 生成 InteractUnit + 背景（可选）以放置一个 Grid
      */
-    public static void placeGrid(Location location, GridPreset option) {
+    public static ActiveGrid placeGrid(Location location, GridPreset option) {
         var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
         var active = new ActiveGrid(location,  option, o);
         var units = new Int2ObjectOpenHashMap<InteractUnit>();
@@ -150,6 +150,7 @@ public class GridUtil {
         if (option.defaultBackground()) {
             addDefaultBackground(active, location);
         }
+        return active;
     }
 
     private static void addDefaultBackground(ActiveGrid active, Location location) {

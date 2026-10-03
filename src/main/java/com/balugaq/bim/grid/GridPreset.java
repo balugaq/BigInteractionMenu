@@ -49,8 +49,8 @@ public abstract class GridPreset {
         GridPresetRegistry.registerOption(this);
     }
 
-    public void place(Location location) {
-        GridUtil.placeGrid(location, this);
+    public ActiveGrid place(Location location) {
+        return GridUtil.placeGrid(location, this);
     }
 
     /**
@@ -91,7 +91,7 @@ public abstract class GridPreset {
     public void onScroll(ActiveGrid active, ScrollResult result, int delta, PlayerItemHeldEvent event) {
         switch (result) {
             case UP -> {
-                active.scrollOffset = Math.min(active.scrollOffset + delta, (Math.max(0, entriesSize() - getWidth() * getHeight()) + getWidth() - 1) / getWidth());
+                active.scrollOffset = Math.min(active.scrollOffset + delta, (Math.max(0, entriesSize(active) - getWidth() * getHeight()) + getWidth() - 1) / getWidth());
             }
             case DOWN -> {
                 active.scrollOffset = Math.max(active.scrollOffset - delta, 0);
@@ -114,7 +114,7 @@ public abstract class GridPreset {
     /**
      * 用于限定 Scroll Offset 范围
      */
-    public abstract int entriesSize();
+    public abstract int entriesSize(ActiveGrid active);
 
     /**
      * 在关服时触发，用于删除实体
