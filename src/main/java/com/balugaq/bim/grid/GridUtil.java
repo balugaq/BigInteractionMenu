@@ -7,6 +7,7 @@
 
 package com.balugaq.bim.grid;
 
+import com.balugaq.bim.BIMMain;
 import com.balugaq.bim.general.BlockPos;
 import com.balugaq.bim.general.TransformationBuilder;
 import com.balugaq.bim.events.PlayerOffGridEvent;
@@ -15,11 +16,14 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Color;
 import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
+import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -31,6 +35,7 @@ import java.util.Collection;
  */
 @NullMarked
 public class GridUtil {
+    public static final NamespacedKey TAG = new NamespacedKey(BIMMain.instance(), "tag");
     public static final Display.Brightness MDB = new Display.Brightness(15, 15);
     public static final Display.Brightness KDB = new Display.Brightness(12, 12);
     public static final int SHOW_DISTANCE = 10;
@@ -127,6 +132,17 @@ public class GridUtil {
      * 生成 InteractUnit + 背景（可选）以放置一个 Grid
      */
     public static ActiveGrid placeGrid(Location location, GridPreset option) {
+        // 先去除已经存在的
+        var pos = BlockPos.from(location);
+        var act = GridDataCache.activeGrids().get(pos);
+        if (act != null) {
+            removeGrid(pos, act.getOccupiedBoundingBox());
+        } else {
+            for (var ori : GridOrientation.values()) {
+                removeGrid(pos, option.getOccupiedBoundingBox(location, ori));
+            }
+        }
+
         var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
         var active = new ActiveGrid(location,  option, o);
         var units = new Int2ObjectOpenHashMap<InteractUnit>();
@@ -146,7 +162,7 @@ public class GridUtil {
             GridDataCache.index().put(u.amountDisplay, u);
         });
         active.units = units;
-        GridDataCache.activeGrids().put(BlockPos.from(location), active);
+        GridDataCache.activeGrids().put(pos, active);
         if (option.defaultBackground()) {
             addDefaultBackground(active, location);
         }
@@ -178,6 +194,7 @@ public class GridUtil {
             bg.setBackgroundColor(Color.fromRGB(0x8B8B8B));
             bg.setBrightness(MDB);
             bg.setLineWidth(999999);
+            active.tag(bg);
             active.backgrounds.add(bg);
         }
 
@@ -194,6 +211,7 @@ public class GridUtil {
             divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
             divider.setBrightness(MDB);
             divider.setLineWidth(1);
+            active.tag(divider);
             active.backgrounds.add(divider);
         }
 
@@ -207,13 +225,24 @@ public class GridUtil {
             divider.setBackgroundColor(Color.fromRGB(0xC3C3C3));
             divider.setBrightness(MDB);
             divider.setLineWidth(999999);
+            active.tag(divider);
             active.backgrounds.add(divider);
         }
     }
 
-    public static void removeGrid(BlockPos pos) {
+    public static void removeGrid(BlockPos pos, BoundingBox boundingBox) {
         var active = GridDataCache.activeGrids().remove(pos);
-        if (active == null) return;
+        if (active == null) {
+            var entities = pos.toLocation().getWorld().getNearbyEntities(boundingBox);
+            for (var e : entities) {
+                var c = e.getPersistentDataContainer().get(TAG, PersistentDataType.STRING);
+                // 只删对应坐标tag的
+                if (pos.getTag().equals(c)) {
+                    e.remove();
+                }
+            }
+            return;
+        }
         active.option.onDestroy(active);
         for (var display : active.backgrounds) {
             display.remove();

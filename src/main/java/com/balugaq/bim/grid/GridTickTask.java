@@ -38,8 +38,8 @@ public class GridTickTask implements Runnable {
             var grid = unit.grid;
             grid.option.onHover(unit, p);
             grid.waitTicks += 1;
-            if (grid.waitTicks % grid.option.tickInterval() == 0) {
-                grid.option.tick();
+            if (grid.waitTicks % grid.option.tickInterval(grid) == 0) {
+                grid.option.tick(grid);
             }
         }
     }

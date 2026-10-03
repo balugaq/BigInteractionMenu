@@ -17,6 +17,7 @@ import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.Range;
 import org.jspecify.annotations.NullMarked;
 
@@ -49,6 +50,7 @@ public abstract class ActiveGridPreset extends GridPreset {
         unit.itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.GUI);
         unit.itemDisplay.setTransformation(TransformationBuilder.create().scale(0.1f).leftRotation(o.getItemRotation()).build());
         unit.itemDisplay.setBrightness(GridUtil.KDB);
+        active.tag(unit.itemDisplay);
 
         if (stack != null) unit.titleDisplay.text(stack.effectiveName());
         unit.titleDisplay.setDefaultBackground(false);
@@ -58,6 +60,7 @@ public abstract class ActiveGridPreset extends GridPreset {
         unit.titleDisplay.setBrightness(GridUtil.MDB);
         unit.titleDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
         unit.titleDisplay.setAlignment(TextDisplay.TextAlignment.CENTER);
+        active.tag(unit.titleDisplay);
 
         if (stack != null) unit.amountDisplay.text(Component.text().color(NamedTextColor.WHITE).append(
             Component.text(GridUtil.formatAmount(stack.getAmount()))).build());
@@ -67,6 +70,7 @@ public abstract class ActiveGridPreset extends GridPreset {
         unit.amountDisplay.setBillboard(o.isHorizontal() ? Display.Billboard.CENTER : Display.Billboard.FIXED);
         unit.amountDisplay.setBrightness(GridUtil.MDB);
         unit.amountDisplay.setTextOpacity(GridUtil.TEXT_OPACITY_HIDDEN);
+        active.tag(unit.amountDisplay);
     }
 
     @Override

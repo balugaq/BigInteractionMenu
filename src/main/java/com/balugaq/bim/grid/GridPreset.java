@@ -10,9 +10,11 @@ package com.balugaq.bim.grid;
 import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Orientation;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Range;
 import org.jspecify.annotations.NullMarked;
 
@@ -77,12 +79,12 @@ public abstract class GridPreset {
     /**
      * 当玩家在一个 InteractUnit 上悬停鼠标后触发
      */
-    public abstract void onHover(InteractUnit unit, Player player);
+    public void onHover(InteractUnit unit, Player player) {}
 
     /**
      * 当玩家在鼠标悬停离开一个 InteractUnit 后触发
      */
-    public abstract void offHover(InteractUnit unit, Player player);
+    public void offHover(InteractUnit unit, Player player) {}
 
     /**
      * 当玩家使用滚轮滑动物品栏时触发，即视作 Grid 滚动
@@ -104,12 +106,12 @@ public abstract class GridPreset {
     /**
      * Grid 可以有自己的 Ticker
      */
-    public abstract void tick();
+    public abstract void tick(ActiveGrid grid);
 
     /**
      * Tick 间隔， Ticks 为单位
      */
-    public abstract int tickInterval();
+    public abstract int tickInterval(ActiveGrid grid);
 
     /**
      * 用于限定 Scroll Offset 范围
@@ -133,5 +135,15 @@ public abstract class GridPreset {
      */
     public boolean defaultBackground() {
         return true;
+    }
+
+    /**
+     * 占据的 BoundingBox
+     */
+    public BoundingBox getOccupiedBoundingBox(Location location, GridOrientation orientation) {
+        Location location1 = orientation.apply(location, getGap() * (getWidth() + 0.5), -getGap() * 0.5, 0);;
+        Location location2 = orientation.apply(location, getGap() * (+ 0.5), getGap() * (getHeight() - 0.5), 0);;
+
+        return BoundingBox.of(location1, location2);
     }
 }

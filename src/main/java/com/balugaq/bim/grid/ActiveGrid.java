@@ -12,8 +12,10 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
@@ -66,6 +68,11 @@ public class ActiveGrid {
         items.put(slot, item);
     }
 
+    public void setClickHandler(@Range(from = 0, to = Integer.MAX_VALUE) int slot, ClickHandler clickHandler) {
+        checkBound(slot);
+        clickHandlers.put(slot, clickHandler);
+    }
+
     /**
      * 获取 InteractUnit
      */
@@ -81,23 +88,32 @@ public class ActiveGrid {
     }
 
     /**
+     * 占据的 BoundingBox
+     */
+    public BoundingBox getOccupiedBoundingBox() {
+        return option.getOccupiedBoundingBox(location, orientation);
+    }
+
+    /**
      * 有玩家进入这个 Showing Box 内时就会触发 {@link GridPreset#onShow(ActiveGrid)}
      * 多个玩家进入只会触发 1 次
      */
     public BoundingBox getShowingBoundingBox() {
-        Location location1 = orientation.apply(location, option.gap * (option.getWidth() + 0.5), -option.gap * 0.5, 0);;
-        Location location2 = orientation.apply(location, option.gap * (+ 0.5), option.gap * (option.getHeight() - 0.5), 0);;
-
-        return BoundingBox.of(location1, location2).expand(GridUtil.SHOW_DISTANCE);
+        return getOccupiedBoundingBox().expand(GridUtil.SHOW_DISTANCE);
     }
 
     /**
      * 没有玩家在这个 Hiding Box 范围内时就会触发 {@link GridPreset#onHide(ActiveGrid)}
      */
     public BoundingBox getHidingBoundingBox() {
-        Location location1 = orientation.apply(location, option.gap * (option.getWidth() + 0.5), -option.gap * 0.5, 0);;
-        Location location2 = orientation.apply(location, option.gap * (+ 0.5), option.gap * (option.getHeight() - 0.5), 0);;
+        return getOccupiedBoundingBox().expand(GridUtil.HIDE_DISTANCE);
+    }
 
-        return BoundingBox.of(location1, location2).expand(GridUtil.HIDE_DISTANCE);
+    public String getTag() {
+        return location.getBlockX() + ":" + location.getBlockY() + ":" + location.getBlockZ();
+    }
+
+    public void tag(Entity e) {
+        e.getPersistentDataContainer().set(GridUtil.TAG, PersistentDataType.STRING, getTag());
     }
 }

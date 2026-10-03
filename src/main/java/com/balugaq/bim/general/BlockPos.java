@@ -28,4 +28,8 @@ public record BlockPos(WeakReference<World> world, int blockX, int blockY, int b
     public Location toLocation() {
         return toLocation(world.get());
     }
+
+    public String getTag() {
+        return blockX + ":" + blockY + ":" + blockZ;
+    }
 }
