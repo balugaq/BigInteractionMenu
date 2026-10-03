@@ -160,22 +160,20 @@ public class GridUtil {
         var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
         var active = new ActiveGrid(location,  option, o);
         var units = new Int2ObjectOpenHashMap<InteractUnit>();
+        active.units = units;
         var gap = option.getGap();
         for (int h = 0; h < option.getHeight(); h++) {
             for (int w = 0; w < option.getWidth(); w++) {
                 Location loc = o.apply(location, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
                 int i = h * option.getWidth() + w;
-                var unit = new InteractUnit(i, loc, active);
-                option.init(active, i, unit);
-                units.put(i, unit);
+                var u = new InteractUnit(i, loc, active);
+                units.put(i, u);
+                cache.index().put(u.itemDisplay, u);
+                cache.index().put(u.titleDisplay, u);
+                cache.index().put(u.amountDisplay, u);
+                option.init(active, i, u);
             }
         }
-        units.values().forEach(u -> {
-            cache.index().put(u.itemDisplay, u);
-            cache.index().put(u.titleDisplay, u);
-            cache.index().put(u.amountDisplay, u);
-        });
-        active.units = units;
         cache.activeGrids().put(pos, active);
         if (option.defaultBackground()) {
             addDefaultBackground(active, location);

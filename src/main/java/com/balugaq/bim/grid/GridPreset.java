@@ -66,6 +66,11 @@ public abstract class GridPreset {
     public abstract void init(ActiveGrid active, int idx, InteractUnit unit);
 
     /**
+     * 初始化 Grid 后触发
+     */
+    public abstract void postInit(ActiveGrid active, int idx);
+
+    /**
      * 当 Grid 隐藏时，玩家靠近后触发
      */
     @OverridingMethodsMustInvokeSuper
