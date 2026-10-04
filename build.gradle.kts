@@ -11,7 +11,7 @@ plugins {
 }
 
 group = "io.github.balugaq"
-version = "0.0.3"
+version = "0.0.4"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(21))

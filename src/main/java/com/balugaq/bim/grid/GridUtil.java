@@ -237,21 +237,9 @@ public class GridUtil {
     public void removeGrid(BlockPos pos, GridPreset option) {
         var cache = getLoader().getCache();
         var act = cache.activeGrids().get(pos);
-        if (act != null) {
-            removeGrid(pos, act.getOccupiedBoundingBox());
-        } else {
-            var loc = pos.toLocation();
-            for (var ori : GridOrientation.values()) {
-                removeGrid(pos, option.getOccupiedBoundingBox(loc, ori));
-            }
-        }
-    }
-
-    public void removeGrid(BlockPos pos, BoundingBox boundingBox) {
-        var cache = getLoader().getCache();
         var active = cache.activeGrids().remove(pos);
         if (active == null) {
-            var entities = pos.toLocation().getWorld().getNearbyEntities(boundingBox);
+            var entities = pos.toLocation().getWorld().getEntitiesByClasses(ItemDisplay.class, TextDisplay.class);
             for (var e : entities) {
                 var c = e.getPersistentDataContainer().get(TAG, PersistentDataType.STRING);
                 // 只删对应坐标tag的
