@@ -100,6 +100,17 @@ public enum GridOrientation {
         return this == XZ || this == XZ_REVERSED;
     }
 
+    public GridOrientation reverse() {
+        return switch (this) {
+            case XZ -> XZ_REVERSED;
+            case XZ_REVERSED -> XZ;
+            case XY -> XY_REVERSED;
+            case XY_REVERSED -> XY;
+            case YZ -> YZ_REVERSED;
+            case YZ_REVERSED -> YZ;
+        };
+    }
+
     /**
      * 根据 yaw/pitch 匹配最接近的合法朝向。
      * <p>

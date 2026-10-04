@@ -8,9 +8,11 @@
 package com.balugaq.bim.grid;
 
 import com.balugaq.bim.BIMLoader;
+import com.balugaq.bim.general.BlockPos;
 import lombok.Data;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Orientation;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemHeldEvent;
@@ -56,8 +58,8 @@ public abstract class GridPreset {
         GridPresetRegistry.registerOption(this);
     }
 
-    public ActiveGrid place(Location location) {
-        return BIMLoader.get(plugin).getGridUtil().placeGrid(location, this);
+    public ActiveGrid place(BlockPos pos, GridOrientation orientation) {
+        return BIMLoader.get(plugin).getGridUtil().placeGrid(pos, orientation, this);
     }
 
     /**

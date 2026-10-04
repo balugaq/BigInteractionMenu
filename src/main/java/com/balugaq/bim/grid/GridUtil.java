@@ -144,29 +144,20 @@ public class GridUtil {
     /**
      * 生成 InteractUnit + 背景（可选）以放置一个 Grid
      */
-    public ActiveGrid placeGrid(Location location, GridPreset option) {
+    public ActiveGrid placeGrid(BlockPos pos, GridOrientation o, GridPreset option) {
         // 先去除已经存在的
-        var pos = BlockPos.from(location);
+        removeGrid(pos, option);
         var cache = getLoader().getCache();
-        var act = cache.activeGrids().get(pos);
-        if (act != null) {
-            removeGrid(pos, act.getOccupiedBoundingBox());
-        } else {
-            for (var ori : GridOrientation.values()) {
-                removeGrid(pos, option.getOccupiedBoundingBox(location, ori));
-            }
-        }
-
-        var o = GridOrientation.fromYawPitch(location.getYaw(), location.getPitch());
-        var active = new ActiveGrid(location,  option, o);
+        var loc = pos.toLocation();
+        var active = new ActiveGrid(loc,  option, o);
         var units = new Int2ObjectOpenHashMap<InteractUnit>();
         active.units = units;
         var gap = option.getGap();
         for (int h = 0; h < option.getHeight(); h++) {
             for (int w = 0; w < option.getWidth(); w++) {
-                Location loc = o.apply(location, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
+                Location uloc = o.apply(loc, gap * (w + 0.5), gap * (option.getHeight() - h - 0.5), 0);
                 int i = h * option.getWidth() + w;
-                var u = new InteractUnit(i, loc, active);
+                var u = new InteractUnit(i, uloc, active);
                 units.put(i, u);
                 cache.index().put(u.itemDisplay, u);
                 cache.index().put(u.titleDisplay, u);
@@ -176,7 +167,7 @@ public class GridUtil {
         }
         cache.activeGrids().put(pos, active);
         if (option.defaultBackground()) {
-            addDefaultBackground(active, location);
+            addDefaultBackground(active, loc);
         }
         option.postInit(active);
         return active;
@@ -240,6 +231,19 @@ public class GridUtil {
             divider.setLineWidth(999999);
             active.tag(divider);
             active.backgrounds.add(divider);
+        }
+    }
+
+    public void removeGrid(BlockPos pos, GridPreset option) {
+        var cache = getLoader().getCache();
+        var act = cache.activeGrids().get(pos);
+        if (act != null) {
+            removeGrid(pos, act.getOccupiedBoundingBox());
+        } else {
+            var loc = pos.toLocation();
+            for (var ori : GridOrientation.values()) {
+                removeGrid(pos, option.getOccupiedBoundingBox(loc, ori));
+            }
         }
     }
 
