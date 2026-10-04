@@ -178,6 +178,7 @@ public class GridUtil {
         if (option.defaultBackground()) {
             addDefaultBackground(active, location);
         }
+        option.postInit(active);
         return active;
     }
 
